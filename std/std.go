@@ -108,3 +108,11 @@ func (err Error) Err() error {
 	}
 	return errors.New(strconv.Itoa(int(err)))
 }
+
+// BooleanInt is a C int that is either 0 or 1.
+type BooleanInt c_int
+
+// Bool returns true if b is 1, otherwise false.
+func (b BooleanInt) Bool() bool {
+	return b == 1
+}
