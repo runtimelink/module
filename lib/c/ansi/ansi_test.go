@@ -1,19 +1,16 @@
-package libc_test
+package ansi_test
 
 import (
 	"fmt"
 	"math"
 	"testing"
 
+	"runtime.link/dll"
 	"runtime.link/ffi"
-	"runtime.link/libc"
+	"runtime.link/lib/c/ansi"
 )
 
-func init() {
-	if err := libc.Link(); err != nil {
-		panic(err)
-	}
-}
+var libc = dll.Open[ansi.Functions]()
 
 func TestMain(m *testing.M) {
 	libc.Program.Exit(ffi.Int(m.Run()))
@@ -22,13 +19,13 @@ func TestMain(m *testing.M) {
 func TestLibc(t *testing.T) {
 	fmt.Println(libc.Char.IsAlphaNumeric('a'))
 
-	fmt.Println(libc.Double.Sqrt(2))
+	fmt.Println(libc.Math.Sqrt(2))
 
-	fmt.Println(libc.Float.Frexp(2.2))
+	var i ffi.Int
+	var d = libc.Math.Frexp(2.2, &i)
+	fmt.Println(d, i)
 
-	fmt.Println(libc.Time.Now(nil))
-
-	fmt.Println(libc.Locale.Get())
+	fmt.Println(libc.System.Time(nil))
 
 	libc.Program.OnExit(func() {
 		fmt.Println("exiting...")
@@ -43,6 +40,6 @@ func BenchmarkGo(b *testing.B) {
 
 func BenchmarkC(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		libc.Double.Sqrt(2)
+		libc.Math.Sqrt(2)
 	}
 }

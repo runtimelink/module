@@ -9,6 +9,7 @@
 #include <signal.h>
 #include <stdatomic.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
@@ -215,6 +216,17 @@ int main(int argc, char *argv[]) {
         {"Weekdays        Int", offsetof(struct tm, tm_wday)},
         {"DaysThisYear    Int", offsetof(struct tm, tm_yday)},
         {"DaylightSavings Int", offsetof(struct tm, tm_isdst)},
+        {"", 0},
+    });
+
+    structure("DivisionInt", (field_t[]){
+        {"Quotient Int", offsetof(div_t, quot)},
+        {"Remainder Int", offsetof(div_t, rem)},
+        {"", 0},
+    });
+     structure("DivisionLong", (field_t[]){
+        {"Quotient Long", offsetof(div_t, quot)},
+        {"Remainder Long", offsetof(div_t, rem)},
         {"", 0},
     });
 

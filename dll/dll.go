@@ -3,6 +3,7 @@ package dll
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"reflect"
 	"runtime"
@@ -43,6 +44,32 @@ func Link(libraries ...ffi.Functions) error {
 	}
 	return nil
 }
+
+// Open the given library and return it fully initialised.
+// If any symbols fail to load, the corresponding functions
+// will panic. Library names provided to this function will
+// override the default library names to search for.
+func Open[Library any](names ...string) Library {
+	var lib Library
+	for _, name := range names {
+		if err := set(&lib, name); err == nil {
+			return lib
+		}
+	}
+	location := reflect.TypeOf(&lib).Elem().Field(0)
+	found, ok := location.Type.FieldByName(runtime.GOOS)
+	if !ok && len(names) == 0 {
+		panic(fmt.Sprintf("library for %T not available on %s", lib, runtime.GOOS))
+	}
+	if ok {
+		if err := set(&lib, found.Tag.Get("dll")); err != nil {
+			log.Println(err)
+		}
+	}
+	return lib
+}
+
+type Tag struct{}
 
 func sigRune(t reflect.Type) rune {
 	switch t.Kind() {
@@ -210,9 +237,18 @@ func newCallback(signature dyncall.Signature, function reflect.Value) dyncall.Ca
 // library file name. The system linker will look for this
 // file in the system library paths.
 func Set(library ffi.Functions, file string) error {
-	lib := dlopen(file)
-	if lib == nil {
-		return errors.New(dlerror())
+	return set(library, file)
+}
+
+func set(library any, file string) error {
+	var libs []unsafe.Pointer
+
+	for _, name := range strings.Split(file, " ") {
+		lib := dlopen(name)
+		if lib == nil {
+			return errors.New(dlerror())
+		}
+		libs = append(libs, lib)
 	}
 
 	rtype := reflect.TypeOf(library).Elem()
@@ -221,6 +257,12 @@ func Set(library ffi.Functions, file string) error {
 	for i := 0; i < rtype.NumField(); i++ {
 		field := rtype.Field(i)
 		value := rvalue.Field(i)
+
+		if field.IsExported() && field.Type.Kind() == reflect.Struct {
+			if err := set(value.Addr().Interface(), file); err != nil {
+				return err
+			}
+		}
 
 		if field.Type.Kind() != reflect.Func {
 			continue
@@ -233,7 +275,12 @@ func Set(library ffi.Functions, file string) error {
 		symbols := strings.Split(name, ",")
 		var symbol unsafe.Pointer
 		for _, name := range symbols {
-			symbol = dlsym(lib, name)
+			for _, lib := range libs {
+				symbol = dlsym(lib, name)
+				if symbol == nil {
+					continue
+				}
+			}
 			if symbol == nil {
 				continue
 			}

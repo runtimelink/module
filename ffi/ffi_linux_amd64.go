@@ -165,6 +165,16 @@ type Date struct {
 	DaylightSavings Int
 }
 
+type DivisionInt struct {
+	Quotient Int
+	Remainder Int
+}
+
+type DivisionLong struct {
+	Quotient Long
+	Remainder Long
+}
+
 const (
 	LocaleAll          LocaleCategory = 6
 	LocaleCollate      LocaleCategory = 3
