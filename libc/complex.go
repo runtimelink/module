@@ -1,4 +1,4 @@
-package std
+package libc
 
 import (
 	"runtime.link/ffi"
