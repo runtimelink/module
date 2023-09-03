@@ -17,13 +17,6 @@ import (
 // #include <internal/dyncall/dyncall.h>
 import "C"
 
-// Library can be embedded inside of a struct to
-// mark it as a library interface structure. Each
-// other field in the struct must be a func.
-type Library interface {
-	library()
-}
-
 var vm4096 sync.Pool
 var vm8 sync.Pool
 
@@ -38,7 +31,7 @@ func init() {
 
 // Link dynamically links the given libraries, based on
 // the platform struct tags of the embedded [Library] field.
-func Link(libraries ...Library) error {
+func Link(libraries ...ffi.Functions) error {
 	for _, library := range libraries {
 		var header = reflect.TypeOf(library).Elem().Field(0)
 		for header.Type.Kind() == reflect.Struct {
@@ -216,7 +209,7 @@ func newCallback(signature dyncall.Signature, function reflect.Value) dyncall.Ca
 // Set links the given library using the specified shared
 // library file name. The system linker will look for this
 // file in the system library paths.
-func Set(library Library, file string) error {
+func Set(library ffi.Functions, file string) error {
 	lib := dlopen(file)
 	if lib == nil {
 		return errors.New(dlerror())

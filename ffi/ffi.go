@@ -17,6 +17,13 @@ type (
 	Uintptr = uintptr
 )
 
+// Functions can be embedded inside of a struct to
+// mark it as a foreign function interface structure.
+// Each other field in the struct must be a func.
+type Functions interface {
+	library()
+}
+
 // Func pointer in C with Go function type equivalent.
 type Func[GoFunc any] Pointer[GoFunc]
 

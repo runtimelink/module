@@ -31,7 +31,7 @@ import (
 )
 
 type Lib struct {
-	dll.Library `linux:"libSDL2-2.0.so.0" darwin:"libSDL2.dylib"`
+	ffi.Functions `linux:"libSDL2-2.0.so.0" darwin:"libSDL2.dylib"`
 }
 
 func Link() error {
@@ -255,6 +255,6 @@ var Errors struct {
 
 	Clear           func()                                           `ffi:"SDL_ClearError"`
 	Get             func() string                                    `ffi:"SDL_GetError"`
-	GetErrorMessage func(ffi.String, ffi.Int) ffi.String             `ffi:"SDL_GetErrorMessage"`
+	GetErrorMessage func(ffi.String, ffi.Int) ffi.String             `ffi:"SDL_GetErrorMsg"`
 	SetError        func(ffi.String, ...ffi.UnsafePointer) ffi.Error `ffi:"SDL_SetError"`
 }

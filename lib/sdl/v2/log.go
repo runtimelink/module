@@ -54,7 +54,7 @@ const (
 var Log struct {
 	Lib
 
-	Printf         func(string, ...ffi.UnsafePointer)                           `ffi:"SDL_LogPrintf"`
+	Printf         func(string, ...ffi.UnsafePointer)                           `ffi:"SDL_Log"`
 	Message        func(LogCategory, LogPriority, string, ...ffi.UnsafePointer) `ffi:"SDL_LogMessage"`
 	SetAllPriority func(LogPriority)                                            `ffi:"SDL_LogSetAllPriority"`
 	SetPriority    func(LogCategory, LogPriority)                               `ffi:"SDL_LogSetPriority"`

@@ -32,11 +32,11 @@ func Link() error {
 }
 
 type LibC struct {
-	dll.Library `linux:"libc.so.6" darwin:"libSystem.dylib"`
+	ffi.Functions `linux:"libc.so.6" darwin:"libSystem.dylib"`
 }
 
 type LibM struct {
-	dll.Library `linux:"libm.so.6" darwin:"libSystem.dylib"`
+	ffi.Functions `linux:"libm.so.6" darwin:"libSystem.dylib"`
 }
 
 // Assert aborts the program if val is zero.
