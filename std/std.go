@@ -1,4 +1,5 @@
 // Package std provides standard C types for cross-language interoperability.
+// The types in this package reflect the default ABI for the current platform.
 package std
 
 import (
@@ -119,3 +120,20 @@ func (b BooleanInt) Bool() bool {
 
 // Func points to a function of the specified type.
 type Func[T any] c_uintptr_t
+
+// Handle is an opaque pointer to a C object.
+// It cannot be dereferenced and can only be
+// manipulated when passed to C functions.
+//
+// A handle should not be used directly, but
+// instead should be used as the underlying
+// type for a named Go type. Use the defined
+// type as the parameter.
+//
+// For example:
+//
+//	type Texture std.Handle[Texture]
+type Handle[T any] struct {
+	_ [0]*T
+	c_uintptr_t
+}
