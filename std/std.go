@@ -116,3 +116,6 @@ type BooleanInt c_int
 func (b BooleanInt) Bool() bool {
 	return b == 1
 }
+
+// Func points to a function of the specified type.
+type Func[T any] c_uintptr_t
