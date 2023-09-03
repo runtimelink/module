@@ -10,7 +10,7 @@ import (
 	"runtime.link/lib/c/ansi"
 )
 
-var libc = dll.Open[ansi.Functions]()
+var libc = dll.Import[ansi.Functions]()
 
 func TestMain(m *testing.M) {
 	libc.Program.Exit(ffi.Int(m.Run()))

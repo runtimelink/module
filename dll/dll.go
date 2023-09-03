@@ -45,11 +45,11 @@ func Link(libraries ...ffi.Functions) error {
 	return nil
 }
 
-// Open the given library and return it fully initialised.
+// Import the given library and return it fully initialised.
 // If any symbols fail to load, the corresponding functions
 // will panic. Library names provided to this function will
 // override the default library names to search for.
-func Open[Library any](names ...string) Library {
+func Import[Library any](names ...string) Library {
 	var lib Library
 	for _, name := range names {
 		if err := set(&lib, name); err == nil {
