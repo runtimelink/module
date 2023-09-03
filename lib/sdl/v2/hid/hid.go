@@ -23,7 +23,7 @@
 
 package hid
 
-import "qlova.tech/lib/sdl/v2"
+import "runtime.link/lib/sdl/v2"
 
 const (
 	/*
