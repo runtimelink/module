@@ -27,32 +27,32 @@ import (
 	"unsafe"
 
 	"runtime.link/dll"
-	"runtime.link/ffi"
+	"runtime.link/std"
 )
 
-type Lib struct {
-	ffi.Functions `linux:"libSDL2-2.0.so.0" darwin:"libSDL2.dylib"`
+type location struct {
+	linux  dll.Tag `dll:"libSDL2-2.0.so.0"`
+	darwin dll.Tag `dll:"libSDL2.dylib"`
 }
 
-func Link() error {
-	return dll.Link(
-		&Atomics,
-		&Audio,
-		&AudioDevices,
-		&AudioStreams,
-		&Windows,
-		&Draw,
-		&Timer,
-		&System,
-		&Events,
-		&Errors,
-		&Video,
-		&Log,
-		&Surfaces,
-	)
-}
+type Functions struct {
+	location
 
-type Module ffi.Uint32
+	Atomics
+	Audio
+	AudioDevices
+	AudioStreams
+	Windows
+	Draw
+	Timer
+	System
+	Events
+	Errors
+	Video
+	Log
+	Surfaces
+}
+type Module std.Uint32
 
 // These are the flags which may be passed to System.Init(). You should
 // specify the modules which you will be using in your application.
@@ -68,8 +68,8 @@ const (
 	Modules              Module = ModuleTimer | ModuleAudio | ModuleVideo | ModuleJoystick | ModuleHaptic | ModuleGameController | ModuleEvents | ModuleSensor // all of the above modules                                                                                                  // compatibility; this flag is ignored
 )
 
-var System struct {
-	Lib
+type System struct {
+	location
 
 	/*
 		Init initialize the SDL library.
@@ -88,7 +88,7 @@ var System struct {
 		* call SDL_Quit() to force shutdown). If a subsystem is already loaded then
 		* this call will increase the ref-count and return.
 	*/
-	Init func(Module) ffi.Error `ffi:"SDL_Init"`
+	Init func(Module) std.Error `ffi:"SDL_Init"`
 	/*
 		Stop shuts down specific SDL subsystems.
 
@@ -128,14 +128,14 @@ var System struct {
 
 	DefaultAssertionHandler func() AssertionHandler                   `ffi:"SDL_GetAssertionHandler"`  // AssertionHandler returns the current assertion handler.
 	SetAssertionHandler     func(AssertionHandler)                    `ffi:"SDL_SetAssertionHandler"`  // SetAssertionHandler sets a new assertion handler.
-	GetAssertionHandler     func(*ffi.UnsafePointer) AssertionHandler `ffi:"SDL_GetAssertionHandler"`  // GetAssertionHandler returns the current assertion handler.
+	GetAssertionHandler     func(*std.UnsafePointer) AssertionHandler `ffi:"SDL_GetAssertionHandler"`  // GetAssertionHandler returns the current assertion handler.
 	GetAssertionReport      func() *AssertionData                     `ffi:"SDL_GetAssertionReport"`   // GetAssertionReport returns the last assertion reported, or nil if there weren't any.
 	ResetAssertionReport    func()                                    `ffi:"SDL_ResetAssertionReport"` // ResetAssertionReport clears the list of all assertion failures.
 }
 
-type AssertionHandler ffi.Func[func(*AssertionData, ffi.UnsafePointer) AssertionState]
+type AssertionHandler std.Func[func(*AssertionData, std.UnsafePointer) AssertionState]
 
-type AssertionState ffi.Enum
+type AssertionState std.Enum
 
 const (
 	AssertionRetry        AssertionState = iota // Retry the assert immediately.
@@ -146,18 +146,18 @@ const (
 )
 
 type AssertionData struct {
-	AlwaysIgnore ffi.Int
-	TriggerCount ffi.IntUnsigned
-	Condition    ffi.String
-	Filename     ffi.String
-	LineNumber   ffi.Int
-	Function     ffi.String
+	AlwaysIgnore std.Int
+	TriggerCount std.UnsignedInt
+	Condition    std.String
+	Filename     std.String
+	LineNumber   std.Int
+	Function     std.String
 	Next         *AssertionData
 }
 
-type Window ffi.Opaque[Window]
+type Window std.Handle[Window]
 
-type WindowFlags ffi.Uint32
+type WindowFlags std.Uint32
 
 const (
 	WindowOpenGL = 0x00000002
@@ -168,56 +168,56 @@ const (
 	WindowCentered = 0x2FFF0000
 )
 
-var Windows struct {
-	Lib
+type Windows struct {
+	location
 
 	Error func() string `ffi:"SDL_GetError"`
 
-	Create func(title string, x, y, w, h ffi.Int, flags WindowFlags) (Window, error) `ffi:"SDL_CreateWindow"`
+	Create func(title string, x, y, w, h std.Int, flags WindowFlags) (Window, error) `ffi:"SDL_CreateWindow"`
 
 	GetSurface    func(Window) (Surface, error) `ffi:"SDL_GetWindowSurface"`
-	UpdateSurface func(Window) ffi.Error        `ffi:"SDL_UpdateWindowSurface"`
+	UpdateSurface func(Window) std.Error        `ffi:"SDL_UpdateWindowSurface"`
 	Destroy       func(Window)                  `ffi:"SDL_DestroyWindow"`
 }
 
-type Surface ffi.Opaque[Surface]
+type Surface std.Handle[Surface]
 
-type Color ffi.Uint32
+type Color std.Uint32
 
 type Rect struct {
-	X, Y, W, H ffi.Int
+	X, Y, W, H std.Int
 }
 
-var Draw struct {
-	Lib
+type Draw struct {
+	location
 
 	FilledRect func(Surface, *Rect, Color) `ffi:"SDL_FillRect"`
 }
 
-var Timer struct {
-	Lib
+type Timer struct {
+	location
 
-	Delay func(ms ffi.Uint32) `ffi:"SDL_Delay"`
+	Delay func(ms std.Uint32) `ffi:"SDL_Delay"`
 }
 
-type MainFunc ffi.Func[func(ffi.Int, *ffi.String) ffi.Int]
+type MainFunc std.Func[func(std.Int, *std.String) std.Int]
 
 type Version struct {
-	Major ffi.Uint8
-	Minor ffi.Uint8
-	Patch ffi.Uint8
+	Major std.Uint8
+	Minor std.Uint8
+	Patch std.Uint8
 }
 
-type Userdata ffi.Opaque[Userdata]
+type Userdata std.Handle[Userdata]
 
-type Bool ffi.Enum
+type Bool std.Enum
 
 const (
 	False Bool = iota
 	True
 )
 
-type eventType ffi.Uint32
+type eventType std.Uint32
 
 const (
 	eventQuit eventType = 0x100
@@ -227,7 +227,7 @@ type Event struct {
 	etype eventType
 	data  [max(
 		unsafe.Sizeof(Quit{}),
-	) - unsafe.Sizeof(ffi.Uint32(0))]byte
+	) - unsafe.Sizeof(std.Uint32(0))]byte
 }
 
 func (ev *Event) Data() any {
@@ -241,20 +241,20 @@ func (ev *Event) Data() any {
 
 type Quit struct {
 	_         eventType
-	Timestamp ffi.Uint32
+	Timestamp std.Uint32
 }
 
-var Events struct {
-	Lib
+type Events struct {
+	location
 
-	Poll func(*Event) ffi.Int `ffi:"SDL_PollEvent"`
+	Poll func(*Event) std.Int `ffi:"SDL_PollEvent"`
 }
 
-var Errors struct {
-	Lib
+type Errors struct {
+	location
 
 	Clear           func()                                           `ffi:"SDL_ClearError"`
 	Get             func() string                                    `ffi:"SDL_GetError"`
-	GetErrorMessage func(ffi.String, ffi.Int) ffi.String             `ffi:"SDL_GetErrorMsg"`
-	SetError        func(ffi.String, ...ffi.UnsafePointer) ffi.Error `ffi:"SDL_SetError"`
+	GetErrorMessage func(std.String, std.Int) std.String             `ffi:"SDL_GetErrorMsg"`
+	SetError        func(std.String, ...std.UnsafePointer) std.Error `ffi:"SDL_SetError"`
 }

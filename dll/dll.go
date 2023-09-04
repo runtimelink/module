@@ -12,7 +12,7 @@ import (
 	"unsafe"
 
 	"runtime.link/dll/internal/dyncall"
-	"runtime.link/ffi"
+	"runtime.link/std"
 )
 
 // #include <internal/dyncall/dyncall.h>
@@ -28,21 +28,6 @@ func init() {
 	vm4096.New = func() any {
 		return dyncall.NewVM(4096)
 	}
-}
-
-// Link dynamically links the given libraries, based on
-// the platform struct tags of the embedded [Library] field.
-func Link(libraries ...ffi.Functions) error {
-	for _, library := range libraries {
-		var header = reflect.TypeOf(library).Elem().Field(0)
-		for header.Type.Kind() == reflect.Struct {
-			header = header.Type.Field(0)
-		}
-		if err := Set(library, header.Tag.Get(runtime.GOOS)); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // Import the given library and return it fully initialised.
@@ -73,38 +58,38 @@ type Tag struct{}
 
 func sigRune(t reflect.Type) rune {
 	switch t.Kind() {
-	case reflect.TypeOf(ffi.Bool(false)).Kind():
+	case reflect.TypeOf(std.Bool(0)).Kind():
 		return dyncall.Bool
-	case reflect.TypeOf(ffi.Char(0)).Kind():
+	case reflect.TypeOf(std.Char(0)).Kind():
 		return dyncall.Char
-	case reflect.TypeOf(ffi.CharUnsigned(0)).Kind():
+	case reflect.TypeOf(std.UnsignedChar(0)).Kind():
 		return dyncall.UnsignedChar
-	case reflect.TypeOf(ffi.Short(0)).Kind():
+	case reflect.TypeOf(std.Short(0)).Kind():
 		return dyncall.Short
-	case reflect.TypeOf(ffi.ShortUnsigned(0)).Kind():
+	case reflect.TypeOf(std.UnsignedShort(0)).Kind():
 		return dyncall.UnsignedShort
-	case reflect.TypeOf(ffi.Int(0)).Kind():
+	case reflect.TypeOf(std.Int(0)).Kind():
 		return dyncall.Int
-	case reflect.TypeOf(ffi.IntUnsigned(0)).Kind():
+	case reflect.TypeOf(std.UnsignedInt(0)).Kind():
 		return dyncall.Uint
-	case reflect.TypeOf(ffi.Long(0)).Kind():
+	case reflect.TypeOf(std.Long(0)).Kind():
 		return dyncall.Long
-	case reflect.TypeOf(ffi.LongUnsigned(0)).Kind():
+	case reflect.TypeOf(std.UnsignedLong(0)).Kind():
 		return dyncall.UnsignedLong
-	case reflect.TypeOf(ffi.LongLong(0)).Kind():
+	case reflect.TypeOf(std.LongLong(0)).Kind():
 		return dyncall.LongLong
-	case reflect.TypeOf(ffi.LongLongUnsigned(0)).Kind():
+	case reflect.TypeOf(std.UnsignedLongLong(0)).Kind():
 		return dyncall.UnsignedLongLong
-	case reflect.TypeOf(ffi.Float(0)).Kind():
+	case reflect.TypeOf(std.Float(0)).Kind():
 		return dyncall.Float
-	case reflect.TypeOf(ffi.Double(0)).Kind():
+	case reflect.TypeOf(std.Double(0)).Kind():
 		return dyncall.Double
 	case reflect.String:
 		return dyncall.String
 	case reflect.Pointer:
 		return dyncall.Pointer
 	case reflect.Struct:
-		if t.Implements(reflect.TypeOf([0]ffi.IsPointer{}).Elem()) {
+		if t.Implements(reflect.TypeOf([0]std.IsPointer{}).Elem()) {
 			return dyncall.Pointer
 		} else {
 			panic("unsupported struct " + t.String())
@@ -172,7 +157,7 @@ func newCallback(signature dyncall.Signature, function reflect.Value) dyncall.Ca
 				case reflect.String:
 					values[i].SetString(C.GoString((*C.char)(ptr)))
 				case reflect.Struct:
-					values[i].Set(reflect.ValueOf(*(*ffi.String)(unsafe.Pointer(&ptr))))
+					values[i].Set(reflect.ValueOf(*(*std.String)(unsafe.Pointer(&ptr))))
 				default:
 					panic("unsupported type " + values[i].Type().String())
 				}
@@ -197,33 +182,37 @@ func newCallback(signature dyncall.Signature, function reflect.Value) dyncall.Ca
 		switch signature.Returns {
 		case dyncall.Void:
 		case dyncall.Bool:
-			*(*ffi.Bool)(result) = ffi.Bool(results[0].Bool())
+			var b std.Bool
+			if results[0].Bool() {
+				b = std.True
+			}
+			*(*std.Bool)(result) = b
 		case dyncall.Char:
-			*(*ffi.Char)(result) = ffi.Char(results[0].Int())
+			*(*std.Char)(result) = std.Char(results[0].Int())
 		case dyncall.UnsignedChar:
-			*(*ffi.CharUnsigned)(result) = ffi.CharUnsigned(results[0].Uint())
+			*(*std.UnsignedChar)(result) = std.UnsignedChar(results[0].Uint())
 		case dyncall.Short:
-			*(*ffi.Short)(result) = ffi.Short(results[0].Int())
+			*(*std.Short)(result) = std.Short(results[0].Int())
 		case dyncall.UnsignedShort:
-			*(*ffi.ShortUnsigned)(result) = ffi.ShortUnsigned(results[0].Uint())
+			*(*std.UnsignedShort)(result) = std.UnsignedShort(results[0].Uint())
 		case dyncall.Int:
-			*(*ffi.Int)(result) = ffi.Int(results[0].Int())
+			*(*std.Int)(result) = std.Int(results[0].Int())
 		case dyncall.Uint:
-			*(*ffi.IntUnsigned)(result) = ffi.IntUnsigned(results[0].Uint())
+			*(*std.UnsignedInt)(result) = std.UnsignedInt(results[0].Uint())
 		case dyncall.Long:
-			*(*ffi.Long)(result) = ffi.Long(results[0].Int())
+			*(*std.Long)(result) = std.Long(results[0].Int())
 		case dyncall.UnsignedLong:
-			*(*ffi.LongUnsigned)(result) = ffi.LongUnsigned(results[0].Uint())
+			*(*std.UnsignedLong)(result) = std.UnsignedLong(results[0].Uint())
 		case dyncall.LongLong:
-			*(*ffi.LongLong)(result) = ffi.LongLong(results[0].Int())
+			*(*std.LongLong)(result) = std.LongLong(results[0].Int())
 		case dyncall.UnsignedLongLong:
-			*(*ffi.LongLongUnsigned)(result) = ffi.LongLongUnsigned(results[0].Uint())
+			*(*std.UnsignedLongLong)(result) = std.UnsignedLongLong(results[0].Uint())
 		case dyncall.Float:
-			*(*ffi.Float)(result) = ffi.Float(results[0].Float())
+			*(*std.Float)(result) = std.Float(results[0].Float())
 		case dyncall.Double:
-			*(*ffi.Double)(result) = ffi.Double(results[0].Float())
+			*(*std.Double)(result) = std.Double(results[0].Float())
 		case dyncall.String:
-			*(*ffi.String)(result) = ffi.NewString(results[0].String()) // FIXME allocate in C memory?
+			*(*std.String)(result) = std.StringOf(results[0].String()) // FIXME allocate in C memory?
 		case dyncall.Pointer:
 			*(*unsafe.Pointer)(result) = results[0].UnsafePointer()
 		default:
@@ -231,13 +220,6 @@ func newCallback(signature dyncall.Signature, function reflect.Value) dyncall.Ca
 		}
 		return signature.Returns
 	}
-}
-
-// Set links the given library using the specified shared
-// library file name. The system linker will look for this
-// file in the system library paths.
-func Set(library ffi.Functions, file string) error {
-	return set(library, file)
 }
 
 func set(library any, file string) error {
@@ -292,13 +274,13 @@ func set(library any, file string) error {
 		getErr := rvalue.FieldByName("Error")
 
 		switch fn := value.Addr().Interface().(type) {
-		case *func(ffi.Double) ffi.Double:
-			*fn = func(a ffi.Double) ffi.Double {
+		case *func(std.Double) std.Double:
+			*fn = func(a std.Double) std.Double {
 				vm := vm8.Get().(*dyncall.VM)
 				vm.Reset()
 				defer vm8.Put(vm)
 				vm.PushFloat64(float64(a))
-				return ffi.Double(vm.CallFloat64(symbol))
+				return std.Double(vm.CallFloat64(symbol))
 			}
 		case *func():
 			*fn = func() {
@@ -342,11 +324,11 @@ func set(library any, file string) error {
 					case reflect.Pointer, reflect.UnsafePointer:
 						vm.PushPointer(value.UnsafePointer())
 					case reflect.String:
-						s := ffi.NewString(value.String())
-						vm.PushPointer(unsafe.Pointer(s.Pointer()))
+						s := std.StringOf(value.String())
+						vm.PushPointer(unsafe.Pointer(s.UnsafePointer()))
 					case reflect.Struct:
-						if value.Type().Implements(reflect.TypeOf([0]ffi.IsPointer{}).Elem()) {
-							vm.PushPointer(unsafe.Pointer(value.Interface().(ffi.IsPointer).Pointer()))
+						if value.Type().Implements(reflect.TypeOf([0]std.IsPointer{}).Elem()) {
+							vm.PushPointer(unsafe.Pointer(value.Interface().(std.IsPointer).Pointer()))
 						} else {
 							panic("unsupported struct " + value.Type().String())
 						}
@@ -415,7 +397,7 @@ func set(library any, file string) error {
 					case reflect.Pointer:
 						results[0] = reflect.NewAt(field.Type.Out(0).Elem(), unsafe.Pointer(vm.CallPointer(symbol)))
 					case reflect.Struct:
-						if rtype.Implements(reflect.TypeOf([0]ffi.IsPointer{}).Elem()) {
+						if rtype.Implements(reflect.TypeOf([0]std.IsPointer{}).Elem()) {
 							*(*unsafe.Pointer)(results[0].Addr().UnsafePointer()) = vm.CallPointer(symbol)
 						} else {
 							panic("unsupported struct " + field.Type.Out(0).String())

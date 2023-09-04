@@ -24,14 +24,14 @@
 package sdl
 
 import (
-	"runtime.link/ffi"
+	"runtime.link/std"
 )
 
 type Hint string
 
-type HintCallback func(userdata Userdata, name, oldVal, newVal ffi.String)
+type HintCallback func(userdata Userdata, name, oldVal, newVal std.String)
 
-type HintPriority ffi.Enum
+type HintPriority std.Enum
 
 const (
 	HintDefault  HintPriority = iota // HintDefault at low priority, used for default values
@@ -40,12 +40,12 @@ const (
 )
 
 var Hints struct {
-	Lib
+	location
 
 	AddHintCallback     func(Hint, callback HintCallback, userdata Userdata) `ffi:"SDL_AddHintCallback"`     // AddHintCallback adds a function to watch a particular hint.
 	ClearHints          func()                                               `ffi:"SDL_ClearHints"`          // ClearHints clears all hints.
 	DelHintCallback     func(Hint, callback HintCallback, userdata Userdata) `ffi:"SDL_DelHintCallback"`     // DelHintCallback removes a function watching a particular hint.
-	GetHint             func(Hint) ffi.String                                `ffi:"SDL_GetHint"`             // GetHint gets the value of a hint.
+	GetHint             func(Hint) std.String                                `ffi:"SDL_GetHint"`             // GetHint gets the value of a hint.
 	GetHintBoolean      func(hint Hint, defaultVal Bool) Bool                `ffi:"SDL_GetHintBoolean"`      // GetHintBoolean gets the value of a hint as a boolean.
 	ResetHint           func(Hint) Bool                                      `ffi:"SDL_ResetHint"`           // ResetHint resets a hint to its default value.
 	ResetHints          func()                                               `ffi:"SDL_ResetHints"`          // ResetHints resets all hints to their default values.

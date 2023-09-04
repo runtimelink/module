@@ -24,10 +24,10 @@
 package sdl
 
 import (
-	"runtime.link/ffi"
+	"runtime.link/std"
 )
 
-type BlendMode ffi.Enum
+type BlendMode std.Enum
 
 const (
 	BlendOff = 0x00000000 /**< no blending dstRGBA = srcRGBA */
@@ -38,28 +38,28 @@ const (
 )
 
 type DisplayMode struct {
-	Format      ffi.Uint32
-	W           ffi.Int
-	H           ffi.Int
-	RefreshRate ffi.Int
-	DriverData  ffi.UnsafePointer
+	Format      std.Uint32
+	W           std.Int
+	H           std.Int
+	RefreshRate std.Int
+	DriverData  std.UnsafePointer
 }
 
-type Renderer ffi.Opaque[Renderer]
+type Renderer std.Handle[Renderer]
 
-var Video struct {
-	Lib
+type Video struct {
+	location
 
-	GetRenderDrawBlendMode func(Renderer, *BlendMode) ffi.Error `ffi:"SDL_GetRenderDrawBlendMode"`
+	GetRenderDrawBlendMode func(Renderer, *BlendMode) std.Error `ffi:"SDL_GetRenderDrawBlendMode"`
 }
 
-var Surfaces struct {
-	Lib
+type Surfaces struct {
+	location
 
-	GetBlendMode func(Surface, *BlendMode) ffi.Error `ffi:"SDL_GetSurfaceBlendMode"`
+	GetBlendMode func(Surface, *BlendMode) std.Error `ffi:"SDL_GetSurfaceBlendMode"`
 }
 
-type GraphicsLibraryAttribute ffi.Enum
+type GraphicsLibraryAttribute std.Enum
 
 const (
 	RedSize GraphicsLibraryAttribute = iota

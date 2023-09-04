@@ -24,10 +24,10 @@
 package sdl
 
 import (
-	"runtime.link/ffi"
+	"runtime.link/std"
 )
 
-type LogCategory ffi.Enum
+type LogCategory std.Enum
 
 const (
 	LogApplication LogCategory = iota
@@ -40,7 +40,7 @@ const (
 	LogInput
 )
 
-type LogPriority ffi.Enum
+type LogPriority std.Enum
 
 const (
 	LogAsVerbose LogPriority = iota
@@ -51,18 +51,18 @@ const (
 	LogAsCritical
 )
 
-var Log struct {
-	Lib
+type Log struct {
+	location
 
-	Printf         func(string, ...ffi.UnsafePointer)                           `ffi:"SDL_Log"`
-	Message        func(LogCategory, LogPriority, string, ...ffi.UnsafePointer) `ffi:"SDL_LogMessage"`
+	Printf         func(string, ...std.UnsafePointer)                           `ffi:"SDL_Log"`
+	Message        func(LogCategory, LogPriority, string, ...std.UnsafePointer) `ffi:"SDL_LogMessage"`
 	SetAllPriority func(LogPriority)                                            `ffi:"SDL_LogSetAllPriority"`
 	SetPriority    func(LogCategory, LogPriority)                               `ffi:"SDL_LogSetPriority"`
 
-	Verbose  func(string, ...ffi.UnsafePointer) `ffi:"SDL_LogVerbose"`
-	Debug    func(string, ...ffi.UnsafePointer) `ffi:"SDL_LogDebug"`
-	Info     func(string, ...ffi.UnsafePointer) `ffi:"SDL_LogInfo"`
-	Warn     func(string, ...ffi.UnsafePointer) `ffi:"SDL_LogWarn"`
-	Error    func(string, ...ffi.UnsafePointer) `ffi:"SDL_LogError"`
-	Critical func(string, ...ffi.UnsafePointer) `ffi:"SDL_LogCritical"`
+	Verbose  func(string, ...std.UnsafePointer) `ffi:"SDL_LogVerbose"`
+	Debug    func(string, ...std.UnsafePointer) `ffi:"SDL_LogDebug"`
+	Info     func(string, ...std.UnsafePointer) `ffi:"SDL_LogInfo"`
+	Warn     func(string, ...std.UnsafePointer) `ffi:"SDL_LogWarn"`
+	Error    func(string, ...std.UnsafePointer) `ffi:"SDL_LogError"`
+	Critical func(string, ...std.UnsafePointer) `ffi:"SDL_LogCritical"`
 }

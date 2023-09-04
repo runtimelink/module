@@ -24,25 +24,25 @@
 package sdl
 
 import (
-	"runtime.link/ffi"
+	"runtime.link/std"
 )
 
-type SpinLock ffi.AtomicInt
-type AtomicInt ffi.AtomicInt
+type SpinLock std.Int
+type AtomicInt std.Int
 
-var Atomics struct {
-	Lib
+type Atomics struct {
+	location
 
 	TryLock func(*SpinLock) Bool `ffi:"SDL_AtomicTryLock"` // Try to lock a spin lock by setting it to a non-zero value.
 	Lock    func(*SpinLock)      `ffi:"SDL_AtomicLock"`    // Lock a spin lock by setting it to a non-zero value.
 	Unlock  func(*SpinLock)      `ffi:"SDL_AtomicUnlock"`  // Unlock a spin lock by setting it to 0.
 
-	CompareAndSwap func(*AtomicInt, ffi.Int, ffi.Int) Bool `ffi:"SDL_AtomicCAS"` // Set an atomic variable to a new value if it is currently an old value.
-	Set            func(*AtomicInt, ffi.Int)               `ffi:"SDL_AtomicSet"` // Set an atomic variable to a value.
-	Get            func(*AtomicInt) ffi.Int                `ffi:"SDL_AtomicGet"` // Get the value of an atomic variable.
-	Add            func(*AtomicInt, ffi.Int) ffi.Int       `ffi:"SDL_AtomicAdd"` // Add to an atomic variable.
+	CompareAndSwap func(*AtomicInt, std.Int, std.Int) Bool `ffi:"SDL_AtomicCAS"` // Set an atomic variable to a new value if it is currently an old value.
+	Set            func(*AtomicInt, std.Int)               `ffi:"SDL_AtomicSet"` // Set an atomic variable to a value.
+	Get            func(*AtomicInt) std.Int                `ffi:"SDL_AtomicGet"` // Get the value of an atomic variable.
+	Add            func(*AtomicInt, std.Int) std.Int       `ffi:"SDL_AtomicAdd"` // Add to an atomic variable.
 
-	CompareAndSwapPointer func(*ffi.AtomicUintptr, ffi.UnsafePointer, ffi.UnsafePointer) Bool `ffi:"SDL_AtomicCASPtr"` // Set an atomic variable to a new value if it is currently an old value.
-	SetPointer            func(*ffi.AtomicUintptr, ffi.UnsafePointer)                         `ffi:"SDL_AtomicSetPtr"` // Set an atomic variable to a value.
-	GetPointer            func(*ffi.AtomicUintptr) ffi.UnsafePointer                          `ffi:"SDL_AtomicGetPtr"` // Get the value of an atomic variable.
+	CompareAndSwapPointer func(*std.UnsafePointer, std.UnsafePointer, std.UnsafePointer) Bool `ffi:"SDL_AtomicCASPtr"` // Set an atomic variable to a new value if it is currently an old value.
+	SetPointer            func(*std.UnsafePointer, std.UnsafePointer)                         `ffi:"SDL_AtomicSetPtr"` // Set an atomic variable to a value.
+	GetPointer            func(*std.UnsafePointer) std.UnsafePointer                          `ffi:"SDL_AtomicGetPtr"` // Get the value of an atomic variable.
 }

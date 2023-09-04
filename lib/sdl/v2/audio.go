@@ -23,78 +23,80 @@
 
 package sdl
 
-import "runtime.link/ffi"
+import (
+	"runtime.link/std"
+)
 
-var Audio struct {
-	Lib
+type Audio struct {
+	location
 
-	Init func(AudioDriver) ffi.Error `ffi:"SDL_AudioInit"` // Internally used to initialize the audio subsystem with a specific driver.
-	Quit func() ffi.Error            `ffi:"SDL_AudioQuit"` // Internally used to shut down the audio subsystem.
+	Init func(AudioDriver) std.Error `ffi:"SDL_AudioInit"` // Internally used to initialize the audio subsystem with a specific driver.
+	Quit func() std.Error            `ffi:"SDL_AudioQuit"` // Internally used to shut down the audio subsystem.
 
-	DriverCount func() ffi.Int            `ffi:"SDL_GetNumAudioDrivers"`    // Get the number of built-in audio drivers.
-	DriverIndex func(ffi.Int) AudioDriver `ffi:"SDL_GetAudioDriver"`        // Get the name of a built-in audio driver.
+	DriverCount func() std.Int            `ffi:"SDL_GetNumAudioDrivers"`    // Get the number of built-in audio drivers.
+	DriverIndex func(std.Int) AudioDriver `ffi:"SDL_GetAudioDriver"`        // Get the name of a built-in audio driver.
 	Driver      func() AudioDriver        `ffi:"SDL_GetCurrentAudioDriver"` // Get the name of the current audio driver.
 
-	Open   func(*AudioSpec) (ffi.Error, AudioSpec) `ffi:"SDL_OpenAudio"`      // Open a specific audio device.
+	Open   func(*AudioSpec) (std.Error, AudioSpec) `ffi:"SDL_OpenAudio"`      // Open a specific audio device.
 	Status func() AudioStatus                      `ffi:"SDL_GetAudioStatus"` // Get the current audio state.
 	Pause  func(Bool)                              `ffi:"SDL_PauseAudio"`     // Pause and unpause the audio callback processing.
 
-	LoadWAV func(src *File, free_source ffi.Int, spec *AudioSpec, buf *ffi.Buffer) `ffi:"SDL_LoadWAV_RW"` // Load a WAVE from an SDL_RWops object.
-	FreeWAV func(ffi.Buffer)                                                       `ffi:"SDL_FreeWAV"`    // Free an audio buffer previously allocated with LoadWAV().
+	LoadWAV func(src *File, free_source std.Int, spec *AudioSpec, buf *std.Buffer) `ffi:"SDL_LoadWAV_RW"` // Load a WAVE from an SDL_RWops object.
+	FreeWAV func(std.Buffer)                                                       `ffi:"SDL_FreeWAV"`    // Free an audio buffer previously allocated with LoadWAV().
 
-	BuildCVT func(cvt *AudioCVT, fmt AudioFormat, src_channels ffi.Uint8, src_rate ffi.Int, dst_format AudioFormat, dst_channels ffi.Uint8, dst_rate ffi.Int) ffi.Error `ffi:"SDL_BuildAudioCVT"` // Initialize a CVT structure for conversion.
-	Convert  func(cvt *AudioCVT) ffi.Error                                                                                                                              `ffi:"SDL_ConvertAudio"`  // Convert audio data to a desired audio format.
+	BuildCVT func(cvt *AudioCVT, fmt AudioFormat, src_channels std.Uint8, src_rate std.Int, dst_format AudioFormat, dst_channels std.Uint8, dst_rate std.Int) std.Error `ffi:"SDL_BuildAudioCVT"` // Initialize a CVT structure for conversion.
+	Convert  func(cvt *AudioCVT) std.Error                                                                                                                              `ffi:"SDL_ConvertAudio"`  // Convert audio data to a desired audio format.
 
-	Mix       func(dst, src *ffi.Uint8, len ffi.Uint32, volume ffi.Int)                     `ffi:"SDL_MixAudio"`       // Mix audio data in a specified format.
-	MixFormat func(dst, src *ffi.Uint8, format AudioFormat, len ffi.Uint32, volume ffi.Int) `ffi:"SDL_MixAudioFormat"` // Mix audio data in a specified format.
+	Mix       func(dst, src *std.Uint8, len std.Uint32, volume std.Int)                     `ffi:"SDL_MixAudio"`       // Mix audio data in a specified format.
+	MixFormat func(dst, src *std.Uint8, format AudioFormat, len std.Uint32, volume std.Int) `ffi:"SDL_MixAudioFormat"` // Mix audio data in a specified format.
 
 	Lock   func() `ffi:"SDL_LockAudio"`   // Lock out the callback function.
 	Unlock func() `ffi:"SDL_UnlockAudio"` // Unlock the callback function.
 	Close  func() `ffi:"SDL_CloseAudio"`  // Close the audio device previously opened with Open().
 }
 
-var AudioStreams struct {
-	Lib
+type AudioStreams struct {
+	location
 
-	New func(src_format AudioFormat, src_channels ffi.Uint8, src_rate ffi.Int, dst_format AudioFormat, dst_channels ffi.Uint8, dst_rate ffi.Int) (AudioStream, error) `ffi:"SDL_NewAudioStream"` // Create a new audio stream.
+	New func(src_format AudioFormat, src_channels std.Uint8, src_rate std.Int, dst_format AudioFormat, dst_channels std.Uint8, dst_rate std.Int) (AudioStream, error) `ffi:"SDL_NewAudioStream"` // Create a new audio stream.
 
-	Put   func(stream AudioStream, buf ffi.Pointer[ffi.Uint8], len ffi.Int) ffi.Error `ffi:"SDL_AudioStreamPut"`   // Write data to a stream.
-	Get   func(stream AudioStream) ffi.Int                                            `ffi:"SDL_AudioStreamGet"`   // Read data from a stream.
-	Flush func(stream AudioStream) ffi.Int                                            `ffi:"SDL_AudioStreamFlush"` // Flush any pending data in the stream.
-	Clear func(stream AudioStream)                                                    `ffi:"SDL_AudioStreamClear"` // Clear any pending data in the stream, without flushing.
-	Free  func(stream AudioStream)                                                    `ffi:"SDL_FreeAudioStream"`  // Free an audio stream.
+	Put   func(stream AudioStream, buf std.Buffer) std.Error `ffi:"SDL_AudioStreamPut"`   // Write data to a stream.
+	Get   func(stream AudioStream) std.Int                   `ffi:"SDL_AudioStreamGet"`   // Read data from a stream.
+	Flush func(stream AudioStream) std.Int                   `ffi:"SDL_AudioStreamFlush"` // Flush any pending data in the stream.
+	Clear func(stream AudioStream)                           `ffi:"SDL_AudioStreamClear"` // Clear any pending data in the stream, without flushing.
+	Free  func(stream AudioStream)                           `ffi:"SDL_FreeAudioStream"`  // Free an audio stream.
 }
 
-var AudioDevices struct {
-	Lib
+type AudioDevices struct {
+	location
 
-	Default func(*ffi.String, *AudioSpec, ffi.Int) ffi.Error `ffi:"SDL_GetDefaultAudioInfo"` // Get the ID of a built-in audio device that is the "best" fit for the desired device specification.
+	Default func(*std.String, *AudioSpec, std.Int) std.Error `ffi:"SDL_GetDefaultAudioInfo"` // Get the ID of a built-in audio device that is the "best" fit for the desired device specification.
 
-	Open   func(AudioDeviceName, ffi.Int, *AudioSpec, *AudioSpec, AudioAllowedChanges) (ffi.Error, AudioDevice) `ffi:"SDL_OpenAudioDevice"`      // Open a specific audio device.
-	Count  func(ffi.Int) AudioDeviceIndex                                                                       `ffi:"SDL_GetNumAudioDevices"`   // Get the number of available devices exposed by the current driver.
-	Name   func(AudioDeviceIndex, ffi.Int) AudioDeviceName                                                      `ffi:"SDL_GetAudioDeviceName"`   // Get the human-readable name of a specific audio device.
-	Spec   func(AudioDeviceIndex, ffi.Int) (ffi.Error, AudioSpec)                                               `ffi:"SDL_GetAudioDeviceSpec"`   // Get the audio device specification for a specific device.
+	Open   func(AudioDeviceName, std.Int, *AudioSpec, *AudioSpec, AudioAllowedChanges) (std.Error, AudioDevice) `ffi:"SDL_OpenAudioDevice"`      // Open a specific audio device.
+	Count  func(std.Int) AudioDeviceIndex                                                                       `ffi:"SDL_GetNumAudioDevices"`   // Get the number of available devices exposed by the current driver.
+	Name   func(AudioDeviceIndex, std.Int) AudioDeviceName                                                      `ffi:"SDL_GetAudioDeviceName"`   // Get the human-readable name of a specific audio device.
+	Spec   func(AudioDeviceIndex, std.Int) (std.Error, AudioSpec)                                               `ffi:"SDL_GetAudioDeviceSpec"`   // Get the audio device specification for a specific device.
 	Pause  func(AudioDevice, Bool)                                                                              `ffi:"SDL_PauseAudioDevice"`     // Pause and unpause a specific audio device.
 	Status func(AudioDevice) AudioStatus                                                                        `ffi:"SDL_GetAudioDeviceStatus"` // Get the current audio state of a specific device.
 	Lock   func(AudioDevice)                                                                                    `ffi:"SDL_LockAudioDevice"`      // Lock the audio device mutex.
 	Unlock func(AudioDevice)                                                                                    `ffi:"SDL_UnlockAudioDevice"`    // Unlock the audio device mutex.
 	Close  func(AudioDevice)                                                                                    `ffi:"SDL_CloseAudioDevice"`     // Close a specific audio device.
 
-	Queue      func(device AudioDevice, data ffi.Pointer[ffi.Uint8], len ffi.Uint32) ffi.Error `ffi:"SDL_QueueAudio"`         // Queue more audio to playback on a specific device.
-	Dequeue    func(device AudioDevice, data ffi.Pointer[ffi.Uint8], len ffi.Uint32) ffi.Error `ffi:"SDL_DequeueAudio"`       // Dequeue more audio for playback on a specific device.
-	QueuedSuze func(device AudioDevice) ffi.Uint32                                             `ffi:"SDL_GetQueuedAudioSize"` // Get the number of bytes of still-queued audio.
-	ClearQueue func(device AudioDevice)                                                        `ffi:"SDL_ClearQueuedAudio"`   // Drop any queued audio data.
+	Queue      func(device AudioDevice, data std.UnsafePointer, len std.Uint32) std.Error `ffi:"SDL_QueueAudio"`         // Queue more audio to playback on a specific device.
+	Dequeue    func(device AudioDevice, data std.UnsafePointer, len std.Uint32) std.Error `ffi:"SDL_DequeueAudio"`       // Dequeue more audio for playback on a specific device.
+	QueuedSuze func(device AudioDevice) std.Uint32                                        `ffi:"SDL_GetQueuedAudioSize"` // Get the number of bytes of still-queued audio.
+	ClearQueue func(device AudioDevice)                                                   `ffi:"SDL_ClearQueuedAudio"`   // Drop any queued audio data.
 }
 
 type AudioDriver string
 
-type AudioStream ffi.Opaque[AudioStream]
+type AudioStream std.Handle[AudioStream]
 
-type AudioDevice ffi.Uint32
-type AudioDeviceIndex ffi.Int
+type AudioDevice std.Uint32
+type AudioDeviceIndex std.Int
 type AudioDeviceName string
 
-type AudioStatus ffi.Enum
+type AudioStatus std.Enum
 
 const (
 	AudioStopped AudioStatus = iota
@@ -102,7 +104,7 @@ const (
 	AudioPaused
 )
 
-type AudioFormat ffi.Uint16
+type AudioFormat std.Uint16
 
 const (
 	AudioFormatMaskBitSize  AudioFormat = 0xFF
@@ -111,8 +113,8 @@ const (
 	AudioFormatMaskSigned   AudioFormat = 1 << 15
 )
 
-func (af AudioFormat) BitSize() ffi.Uint16 {
-	return ffi.Uint16(af & AudioFormatMaskBitSize)
+func (af AudioFormat) BitSize() std.Uint16 {
+	return std.Uint16(af & AudioFormatMaskBitSize)
 }
 
 func (af AudioFormat) IsFloat() bool {
@@ -162,7 +164,7 @@ const (
 	AudioF32    AudioFormat = AudioF32LSB
 )
 
-type AudioAllowedChanges ffi.Int
+type AudioAllowedChanges std.Int
 
 const (
 	AudioAllowFrequencyChange AudioAllowedChanges = 0x00000001 /**< Allow any sample rate for playback */
@@ -172,33 +174,33 @@ const (
 	AudioAllowAnyChange       AudioAllowedChanges = AudioAllowFrequencyChange | AudioAllowFormatChange | AudioAllowChannelsChange | AudioAllowSamplesChange
 )
 
-type AudioCallback ffi.Func[func(ffi.UnsafePointer, ffi.Buffer)]
+type AudioCallback std.Func[func(std.UnsafePointer, std.Buffer)]
 
 type AudioSpec struct {
-	Freq     ffi.Int           /**< DSP frequency -- samples per second */
+	Freq     std.Int           /**< DSP frequency -- samples per second */
 	Format   AudioFormat       /**< Audio data format */
-	Channels ffi.Uint8         /**< Number of channels: 1 mono, 2 stereo */
-	Silence  ffi.Uint8         /**< Audio buffer silence value (calculated) */
-	Samples  ffi.Uint16        /**< Audio buffer size in samples (power of 2) */
-	Padding  ffi.Uint16        /**< Necessary for some compile environments */
-	Size     ffi.Uint32        /**< Audio buffer size in bytes (calculated) */
+	Channels std.Uint8         /**< Number of channels: 1 mono, 2 stereo */
+	Silence  std.Uint8         /**< Audio buffer silence value (calculated) */
+	Samples  std.Uint16        /**< Audio buffer size in samples (power of 2) */
+	Padding  std.Uint16        /**< Necessary for some compile environments */
+	Size     std.Uint32        /**< Audio buffer size in bytes (calculated) */
 	Callback AudioCallback     /**< Callback that feeds the audio device (NULL to use SDL_QueueAudio()). */
-	Userdata ffi.UnsafePointer /**< Userdata passed to callback (ignored for NULL callbacks). */
+	Userdata std.UnsafePointer /**< Userdata passed to callback (ignored for NULL callbacks). */
 }
 
-type AudioFilter ffi.Func[func(*AudioCVT, AudioFormat)]
+type AudioFilter std.Func[func(*AudioCVT, AudioFormat)]
 
 const MaxFiltersAudioCVT = 9
 
 type AudioCVT struct {
-	Needed                  ffi.Int                             /**< Set to 1 if conversion possible */
+	Needed                  std.Int                             /**< Set to 1 if conversion possible */
 	SourceFormat            AudioFormat                         /**< Source audio format */
 	TargetFormat            AudioFormat                         /**< Target audio format */
-	RateConversionIncrement ffi.Double                          /**< Rate conversion increment */
-	Buffer                  ffi.Buffer                          /**< Buffer to hold entire audio data */
-	LengthConverted         ffi.Int                             /**< Length of converted audio buffer */
-	LengthMultiple          ffi.Int                             /**< buffer must be len*mul in length */
-	LengthRatio             ffi.Double                          /**< Given len, final size is len*rat */
+	RateConversionIncrement std.Double                          /**< Rate conversion increment */
+	Buffer                  std.Buffer                          /**< Buffer to hold entire audio data */
+	LengthConverted         std.Int                             /**< Length of converted audio buffer */
+	LengthMultiple          std.Int                             /**< buffer must be len*mul in length */
+	LengthRatio             std.Double                          /**< Given len, final size is len*rat */
 	Filters                 [MaxFiltersAudioCVT + 1]AudioFilter /**< NULL-terminated list of Filter functions */
-	FilterIndex             ffi.Int                             /**< Current audio conversion function */
+	FilterIndex             std.Int                             /**< Current audio conversion function */
 }

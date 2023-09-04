@@ -392,8 +392,8 @@ type Func[T any] c_uintptr_t
 //
 //	type Texture std.Handle[Texture]
 type Handle[T any] struct {
-	_   [0]*T
-	ptr c_uintptr_t
+	_ [0]*T
+	handle
 }
 
 // Enum represents a type derived from a C enum.
@@ -487,4 +487,22 @@ func Out() *File {
 // Err returns a File for stderr.
 func Err() *File {
 	return (*File)(unsafe.Pointer(uintptr(c_stderr)))
+}
+
+type IsPointer interface {
+	Pointer() uintptr
+}
+
+type handle uintptr
+
+func (p handle) Pointer() uintptr {
+	return uintptr(p)
+}
+
+func (p *handle) SetPointer(val unsafe.Pointer) {
+	*p = handle(val)
+}
+
+func (s String) UnsafePointer() unsafe.Pointer {
+	return unsafe.Pointer(s.ptr)
 }

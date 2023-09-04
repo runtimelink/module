@@ -2,48 +2,43 @@ package main
 
 import (
 	"fmt"
-	"runtime"
 
+	"runtime.link/dll"
 	"runtime.link/lib/sdl/v2"
 )
 
-func init() {
-	runtime.LockOSThread()
-	if err := sdl.Link(); err != nil {
-		panic(err)
-	}
-}
+var SDL = dll.Import[sdl.Functions]()
 
 func main() {
-	if err := sdl.System.Init(sdl.Modules); err != 0 {
-		panic(sdl.Errors.Get())
+	if err := SDL.System.Init(sdl.Modules); err != 0 {
+		panic(SDL.Errors.Get())
 	}
 
-	window, err := sdl.Windows.Create("Hello Square", sdl.WindowCentered,
+	window, err := SDL.Windows.Create("Hello Square", sdl.WindowCentered,
 		sdl.WindowCentered, 640, 480, sdl.WindowOpenGL|sdl.WindowShown)
 	if err != nil {
 		panic(err)
 	}
-	defer sdl.Windows.Destroy(window)
+	defer SDL.Windows.Destroy(window)
 
-	surface, err := sdl.Windows.GetSurface(window)
+	surface, err := SDL.Windows.GetSurface(window)
 	if err != nil {
 		panic(err)
 	}
-	sdl.Draw.FilledRect(surface, nil, 0xFFFFFF)
-	sdl.Draw.FilledRect(surface, &sdl.Rect{
+	SDL.Draw.FilledRect(surface, nil, 0xFFFFFF)
+	SDL.Draw.FilledRect(surface, &sdl.Rect{
 		X: 640/2 - 50, Y: 480/2 - 50, W: 100, H: 100,
 	}, 0xFF0000)
-	sdl.Windows.UpdateSurface(window)
+	SDL.Windows.UpdateSurface(window)
 
-	fmt.Println(sdl.Audio.Driver())
+	fmt.Println(SDL.Audio.Driver())
 
 	var event sdl.Event
-	for ; true; sdl.Events.Poll(&event) {
+	for ; true; SDL.Events.Poll(&event) {
 		switch data := event.Data().(type) {
 		case *sdl.Quit:
 			fmt.Println(data.Timestamp)
-			sdl.System.Quit()
+			SDL.System.Quit()
 			return
 		}
 	}

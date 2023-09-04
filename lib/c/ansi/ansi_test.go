@@ -6,14 +6,14 @@ import (
 	"testing"
 
 	"runtime.link/dll"
-	"runtime.link/ffi"
 	"runtime.link/lib/c/ansi"
+	"runtime.link/std"
 )
 
 var libc = dll.Import[ansi.Functions]()
 
 func TestMain(m *testing.M) {
-	libc.Program.Exit(ffi.Int(m.Run()))
+	libc.Program.Exit(std.Int(m.Run()))
 }
 
 func TestLibc(t *testing.T) {
@@ -21,7 +21,7 @@ func TestLibc(t *testing.T) {
 
 	fmt.Println(libc.Math.Sqrt(2))
 
-	var i ffi.Int
+	var i std.Int
 	var d = libc.Math.Frexp(2.2, &i)
 	fmt.Println(d, i)
 
