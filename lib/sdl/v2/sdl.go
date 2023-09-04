@@ -26,31 +26,30 @@ package sdl
 import (
 	"unsafe"
 
-	"runtime.link/dll"
 	"runtime.link/std"
 )
 
 type location struct {
-	linux  dll.Tag `dll:"libSDL2-2.0.so.0"`
-	darwin dll.Tag `dll:"libSDL2.dylib"`
+	linux  std.Location `libSDL2-2.0.so.0`
+	darwin std.Location `libSDL2.dylib,/opt/homebrew/lib/libSDL2.dylib`
 }
 
-type Functions struct {
+type Library struct {
 	location
 
-	Atomics
-	Audio
-	AudioDevices
-	AudioStreams
-	Windows
-	Draw
-	Timer
-	System
-	Events
-	Errors
-	Video
-	Log
-	Surfaces
+	Atomics      Atomics
+	Audio        Audio
+	AudioDevices AudioDevices
+	AudioStreams AudioStreams
+	Windows      Windows
+	Draw         Draw
+	Timer        Timer
+	System       System
+	Events       Events
+	Errors       Errors
+	Video        Video
+	Log          Log
+	Surfaces     Surfaces
 }
 type Module std.Uint32
 

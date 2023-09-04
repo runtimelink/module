@@ -2,14 +2,17 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 
 	"runtime.link/dll"
 	"runtime.link/lib/sdl/v2"
 )
 
-var SDL = dll.Import[sdl.Functions]()
+var SDL = dll.Import[sdl.Library]()
 
 func main() {
+	runtime.LockOSThread()
+
 	if err := SDL.System.Init(sdl.Modules); err != 0 {
 		panic(SDL.Errors.Get())
 	}

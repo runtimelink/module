@@ -4,18 +4,17 @@ import (
 	"testing"
 
 	"runtime.link/dll"
-	"runtime.link/ffi"
+	"runtime.link/std"
 )
 
-var libc struct {
-	ffi.Functions `linux:"libc.so.6"`
+var libc = dll.Import[struct {
+	linux   std.Location `libc.so.6 libm.so.6`
+	darwin  std.Location `libSystem.dylib`
+	windows std.Location `msvcrt.dll`
 
-	PutString func(string) ffi.Int `ffi:"puts"`
-}
+	PutString func(string) std.Int `sym:"puts"`
+}]()
 
 func TestHelloWorld(*testing.T) {
-	if err := dll.Link(&libc); err != nil {
-		panic(err)
-	}
 	libc.PutString("Hello, World!")
 }

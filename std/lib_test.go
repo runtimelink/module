@@ -1,4 +1,4 @@
-package ansi_test
+package std_test
 
 import (
 	"fmt"
@@ -6,11 +6,10 @@ import (
 	"testing"
 
 	"runtime.link/dll"
-	"runtime.link/lib/c/ansi"
 	"runtime.link/std"
 )
 
-var libc = dll.Import[ansi.Functions]()
+var libc = dll.Import[std.Library]()
 
 func TestMain(m *testing.M) {
 	libc.Program.Exit(std.Int(m.Run()))

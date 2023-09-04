@@ -491,3 +491,16 @@ func (p *handle) SetPointer(val unsafe.Pointer) {
 func (s String) UnsafePointer() unsafe.Pointer {
 	return unsafe.Pointer(s.ptr)
 }
+
+// Location can be added to a Library struct to specify
+// the standard location or name of that library on a
+// specific GOOS.
+//
+// For example:
+//
+//	type Library struct {
+//		linux   Location `libc.so.6 libm.so.6`
+//		darwin  Location `libSystem.dylib`
+//		windows Location `msvcrt.dll`
+//	}
+type Location struct{}

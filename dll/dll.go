@@ -41,13 +41,16 @@ func Import[Library any](names ...string) Library {
 			return lib
 		}
 	}
-	location := reflect.TypeOf(&lib).Elem().Field(0)
-	found, ok := location.Type.FieldByName(runtime.GOOS)
+	location := reflect.TypeOf(&lib).Elem()
+	found, ok := location.FieldByName(runtime.GOOS)
+	if !ok {
+		found, ok = location.Field(0).Type.FieldByName(runtime.GOOS)
+	}
 	if !ok && len(names) == 0 {
 		panic(fmt.Sprintf("library for %T not available on %s", lib, runtime.GOOS))
 	}
 	if ok {
-		if err := set(&lib, found.Tag.Get("dll")); err != nil {
+		if err := set(&lib, string(found.Tag)); err != nil {
 			log.Println(err)
 		}
 	}
@@ -222,15 +225,21 @@ func newCallback(signature dyncall.Signature, function reflect.Value) dyncall.Ca
 	}
 }
 
-func set(library any, file string) error {
+func set(library any, tag string) error {
 	var libs []unsafe.Pointer
 
-	for _, name := range strings.Split(file, " ") {
-		lib := dlopen(name)
-		if lib == nil {
-			return errors.New(dlerror())
+	for _, location := range strings.Split(tag, ",") {
+		for _, name := range strings.Split(location, " ") {
+			lib := dlopen(name)
+			if lib == nil {
+				continue
+			}
+			libs = append(libs, lib)
 		}
-		libs = append(libs, lib)
+	}
+
+	if len(libs) == 0 {
+		return errors.New(tag + " not found")
 	}
 
 	rtype := reflect.TypeOf(library).Elem()
@@ -241,7 +250,7 @@ func set(library any, file string) error {
 		value := rvalue.Field(i)
 
 		if field.IsExported() && field.Type.Kind() == reflect.Struct {
-			if err := set(value.Addr().Interface(), file); err != nil {
+			if err := set(value.Addr().Interface(), tag); err != nil {
 				return err
 			}
 		}
@@ -252,7 +261,10 @@ func set(library any, file string) error {
 
 		name := field.Tag.Get("ffi")
 		if name == "" {
-			name = field.Name
+			name = field.Tag.Get("sym")
+			if name == "" {
+				name = field.Name
+			}
 		}
 		symbols := strings.Split(name, ",")
 		var symbol unsafe.Pointer
