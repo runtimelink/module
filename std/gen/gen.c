@@ -15,8 +15,14 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
-#include <uchar.h>
 #include <wchar.h>
+
+#ifdef __APPLE__
+typedef uint16_t char16_t;
+typedef uint32_t char32_t;
+#else
+#include <uchar.h>
+#endif
 
 // we need to represent the C struct in Go
 // so we sort all fields by offset and then 
@@ -252,10 +258,6 @@ int main(int argc, char *argv[]) {
     printf("\tc_ATOMIC_LONG_LOCK_FREE  = %d\n", ATOMIC_LONG_LOCK_FREE);
     printf("\tc_ATOMIC_LLONG_LOCK_FREE  = %d\n", ATOMIC_LLONG_LOCK_FREE);
     printf("\tc_ATOMIC_POINTER_LOCK_FREE  = %d\n", ATOMIC_POINTER_LOCK_FREE);
-
-    printf("\tc_stdin                 = %p\n", stdin);
-    printf("\tc_stdout                = %p\n", stdout);
-    printf("\tc_stderr                = %p\n", stderr);
 
     printf("\tc_EOF                   = %d\n", EOF);
     printf("\tc_FOPEN_MAX             = %d\n", FOPEN_MAX);

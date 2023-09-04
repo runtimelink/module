@@ -474,21 +474,6 @@ type Atomic[T atomic] struct {
 	val T
 }
 
-// In returns a File for stdin.
-func In() *File {
-	return (*File)(unsafe.Pointer(uintptr(c_stdin)))
-}
-
-// Out returns a File for stdout.
-func Out() *File {
-	return (*File)(unsafe.Pointer(uintptr(c_stdout)))
-}
-
-// Err returns a File for stderr.
-func Err() *File {
-	return (*File)(unsafe.Pointer(uintptr(c_stderr)))
-}
-
 type IsPointer interface {
 	Pointer() uintptr
 }
