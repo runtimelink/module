@@ -1,4 +1,3 @@
-// Package ansi
 package std
 
 type location struct {
