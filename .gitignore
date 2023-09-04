@@ -6,3 +6,4 @@
 !*.s
 !*.S
 !.gitignore
+!*Makefile
