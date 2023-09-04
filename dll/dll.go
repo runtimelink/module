@@ -18,19 +18,7 @@ import (
 // #include <internal/dyncall/dyncall.h>
 import "C"
 
-var vm4096 sync.Pool
-var vm8 sync.Pool
-
-func init() {
-	vm8.New = func() any {
-		return dyncall.NewVM(8)
-	}
-	vm4096.New = func() any {
-		return dyncall.NewVM(4096)
-	}
-}
-
-// Import the given library and return it fully initialised.
+// Import dynamically links to the the specified library.
 // If any symbols fail to load, the corresponding functions
 // will panic. Library locations provided to this function
 // will override the default ones to search for.
@@ -42,28 +30,42 @@ func init() {
 //
 // For example:
 //
-//	PutString func(std.String) std.Int `sym:"puts"`    // fastest, values passed directly.
+//	PutString func(std.String) std.Int `sym:"puts"`   // fastest, values passed directly where possible.
 //	PutString func(string) int `std:"int puts(char)"` // safest, deep copy all values.
+//
+// The 'std' is similar to a C function signature, but
+// with *, [] symbols and the argument names omitted
+// (fdunction arguments are specified using 'void').
 //
 // Structs and struct pointers must either be entirely
 // composed of std typed fields, or have std tags on
 // each field that define the C type. Field order must
 // match the C struct definition. If there are layout
-// differences between the C and Go structs, or non-std
-// types are being used, then the struct must embed a
-// std.Struct field.
+// or alignment differences between the C and Go structs,
+// or non-std Go types are being used, then the struct
+// must embed a std.Struct field.
 //
 //	// safest, deep copy all pointers to this struct.
 //	type MyStruct {
-//		std.Struct
+//		std.Struct // if-in-doubt, embed this.
 //
 //		Name string `std:"char"`
 //	}
 //
-//	// fastest, struct pointers passed directly.
+//	// fastest, struct pointers passed directly
 //	type MyStruct {
 //		Name std.String
 //	}
+//
+// IMPORT IS FUNDAMENTALLY UNSAFE
+// Although it will validate what it can in order to
+// ensure safety. Callers unfamiliar with C should
+// stick to the 'std' tag and avoid libraries that
+// require C struct values to be accessed directly.
+//
+// Alternatively, use a library with an existing
+// representation in Go, as can be found under
+// runtime.link/lib
 func Import[Library any](names ...string) Library {
 	var lib Library
 	for _, name := range names {
@@ -85,6 +87,18 @@ func Import[Library any](names ...string) Library {
 		}
 	}
 	return lib
+}
+
+var vm4096 sync.Pool
+var vm8 sync.Pool
+
+func init() {
+	vm8.New = func() any {
+		return dyncall.NewVM(8)
+	}
+	vm4096.New = func() any {
+		return dyncall.NewVM(4096)
+	}
 }
 
 func sigRune(t reflect.Type) rune {
