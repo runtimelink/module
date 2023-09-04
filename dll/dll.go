@@ -30,12 +30,46 @@ import "C"
 //
 // For example:
 //
-//	PutString func(std.String) std.Int `sym:"puts"`   // fastest, values passed directly where possible.
-//	PutString func(string) int `std:"int puts(char)"` // safest, deep copy all values.
+//	PutString func(std.String) std.Int `sym:"puts"`   // unsafe, pointer values passed directly.
+//	PutString func(string) int `std:"int puts(char)"` // safest, deep copy and convert all values.
 //
 // The 'std' is similar to a C function signature, but
 // with *, [] symbols and the argument names omitted
-// (fdunction arguments are specified using 'void').
+// (function arguments are specified using 'void').
+// Import will not free memory by default, as this
+// is the safest option. In order to prevent these
+// memory leaks, the function signature can have
+// appropriate parameter annotations.
+//
+// Import may use these annotations to optimize calls.
+//
+//	'#type'   - tags this symbol as the destructor for
+//				the given type. Which will be used
+//				instead of the default free() call.
+//	'&type'   - the receiver borrows this pointer and
+//				will not keep a reference to it.
+//	'$type'   - the receiver takes ownership of this
+//				pointer and is responsible for freeing it.
+//	'type%v'  - the argument identified by the given
+//		        fmt parameter is mapped here. Must
+//		        come before other suffixed annotations.
+//	'type?sym'- (for return type only) when the value
+//				is not empty, return the result from
+//				the given symbol instead. Otherwise
+//				return the zero value. Either directly
+//				or in an additional return value (if specified).
+//	'type!sym'- (for argument type only) when the value
+//				is empty, return the result from the
+//				given symbol instead, either directly
+//				or in an additional return value (if specified).
+//	'type@sym'- frees the memory allocated because of
+//				this parameter, right after the next time
+//				the given symbol is called with a matching
+//				pattern.
+//
+//	'sym' name can have optional pattern {} where each
+//	comma separated value is either a fmt parameter or
+//	underscore (wildcard).
 //
 // Structs and struct pointers must either be entirely
 // composed of std typed fields, or have std tags on

@@ -504,3 +504,46 @@ func (s String) UnsafePointer() unsafe.Pointer {
 //		windows Location `msvcrt.dll`
 //	}
 type Location struct{}
+
+// Memory is like [Handle] except it can be freed.
+type Memory[T any] struct {
+	_ [0]*T
+	*memory
+}
+
+func (m memory) Pointer() uintptr {
+	return uintptr(m.ptr)
+}
+
+type memory struct {
+	ptr  Uintptr
+	free func()
+}
+
+// Pointer is a typed pointer to C memory that can
+// be freed, dereferenced, and passed to C functions.
+type Pointer[T any] struct {
+	_ [0]*T
+	*pointer[T]
+}
+
+type pointer[T any] struct {
+	ptr  unsafe.Pointer
+	free func()
+}
+
+func (p pointer[T]) Get() T {
+	return *(*T)(p.ptr)
+}
+
+func (p pointer[T]) Set(val T) {
+	*(*T)(p.ptr) = val
+}
+
+func (p pointer[T]) Free() {
+	p.free()
+}
+
+func (p pointer[T]) UnsafePointer() unsafe.Pointer {
+	return p.ptr
+}
