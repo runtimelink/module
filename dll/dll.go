@@ -1,4 +1,4 @@
-// Package dll provides an interface for loading C shared libraries dynamically.
+// Package dll provides an interface for loading C shared libraries at runtime.
 package dll
 
 import (
@@ -32,8 +32,38 @@ func init() {
 
 // Import the given library and return it fully initialised.
 // If any symbols fail to load, the corresponding functions
-// will panic. Library names provided to this function will
-// override the default library names to search for.
+// will panic. Library locations provided to this function
+// will override the default ones to search for.
+//
+// Library should be a struct of functions, each function
+// must clearly define a standard signature and symbol.
+// This can be achieved by sticking to std package types, or
+// by using a std tag that defines the signature.
+//
+// For example:
+//
+//	PutString func(std.String) std.Int `sym:"puts"`    // fastest, values passed directly.
+//	PutString func(string) int `std:"int puts(char)"` // safest, deep copy all values.
+//
+// Structs and struct pointers must either be entirely
+// composed of std typed fields, or have std tags on
+// each field that define the C type. Field order must
+// match the C struct definition. If there are layout
+// differences between the C and Go structs, or non-std
+// types are being used, then the struct must embed a
+// std.Struct field.
+//
+//	// safest, deep copy all pointers to this struct.
+//	type MyStruct {
+//		std.Struct
+//
+//		Name string `std:"char"`
+//	}
+//
+//	// fastest, struct pointers passed directly.
+//	type MyStruct {
+//		Name std.String
+//	}
 func Import[Library any](names ...string) Library {
 	var lib Library
 	for _, name := range names {
@@ -56,8 +86,6 @@ func Import[Library any](names ...string) Library {
 	}
 	return lib
 }
-
-type Tag struct{}
 
 func sigRune(t reflect.Type) rune {
 	switch t.Kind() {

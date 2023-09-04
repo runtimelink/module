@@ -226,6 +226,7 @@ type Event struct {
 	etype eventType
 	data  [max(
 		unsafe.Sizeof(Quit{}),
+		60,
 	) - unsafe.Sizeof(std.Uint32(0))]byte
 }
 
