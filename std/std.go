@@ -547,3 +547,10 @@ func (p pointer[T]) Free() {
 func (p pointer[T]) UnsafePointer() unsafe.Pointer {
 	return p.ptr
 }
+
+type Struct[T any] struct {
+	_      [0]*T
+	ptr    Uintptr   // pointer to C
+	free   func()    // free function
+	layout []uintptr // Go -> C layout.
+}
