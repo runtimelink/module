@@ -1,5 +1,5 @@
 /*
-Package std provides standard types for cross-language interoperability.
+Package std provides standard types and tags for safe cross-language interoperability.
 
 # Standard Symbols
 
@@ -92,12 +92,12 @@ be omitted.
 
 # Macros
 
-When a standard symbol is tagged on a Go function field, it conveys the C
+When a standard symbol is tagged on a Go function field, it conveys the standard
 representation of that field. Some standard macros are supported for mapping
-the Go function signature to the C one. These macros are purely used for
-convenience and do not change the semantics of the C function signature
-(the C semantics of a standard symbol tag with macros remain constant
-when the macros are removed).
+the Go function signature to the standard one. These macros are purely used for
+convenience and do not change the semantics of the standard function signature
+(the standard semantics of a symbol tag with macros remain constant when the
+macros are removed).
 
   - type{n} - The constant integer value n is always used for this
     parameter.
@@ -122,16 +122,25 @@ type for each field. Pointer fields are typically tagged with an '&'.
 # Deep Copies
 
 By default, values are deep-copied between languages. In order to
-avoid these copies, C ownership can be preserved with [String] and
+avoid these copies, foreign ownership can be preserved with [String] and
 [Pointer] types. Which need to be manually freed. Struct fields
 can be accessed directly this way by specifying getter and setter
-functions. Such types are safe to pass back and forth between
+functions. These types are safe to pass back and forth between
 languages (although may panic when misused).
 
-	// accessor methods to link.
-	type MyStructs {
-		Name(std.Pointer[MyStruct]) string     `std:"my_struct.Name"`
-		SetName(std.Pointer[MyStruct], string) `std:"my_struct.Name"`
-	}
+	// MyStruct is always passed by reference between languages.
+	type MyStruct std.Pointer[struct{
+		Name string `std:"name &char"`
+	}]
+
+	var getMyStruct = std.Getters[struct{
+		Name(std.Pointer[MyStruct]) string `std:"my_struct.Name"`
+	}]()
+	var setMyStruct = std.Setters[struct{
+		Name(std.Pointer[MyStruct], string) `std:"my_struct.Name"`
+	}]()
+
+	func (ptr MyStruct) Name() string { return getMyStruct.Name(ptr) }
+	func (ptr MyStruct) SetName(name string) { setMyStruct.Name(ptr, name) }
 */
 package std
