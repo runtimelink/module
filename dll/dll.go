@@ -24,22 +24,18 @@ import "C"
 // will override the default ones to search for.
 //
 // Library should be a struct of functions, each function must
-// clearly tag a standard symbol (see the [std] package). Each
-// struct argument must be a [std.Struct] with [std] tags on
-// each field.
+// clearly tag a standard symbol (see the [std] package).
 //
 // For example:
 //
 //	PutString func(string) error `std:"puts func(&char)int<0"`
 //
-// IMPORT IS FUNDAMENTALLY UNSAFE
-// Although it will validate what it can in order to
-// ensure safety. Callers unfamiliar with C should
-// ensure that the std tags are aligned with C.
+// As long as the [std] tags correctly describe the standard
+// function's signature and memory semantics, the function
+// is safe to use from Go.
 //
-// Alternatively, use a library with an existing
-// representation in Go, as can be found under
-// runtime.link/lib
+// Packages under runtime.link/lib are specifically designed
+// to be memory safe.
 func Import[Library any](names ...string) Library {
 	var lib Library
 	for _, name := range names {

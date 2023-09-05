@@ -26,12 +26,13 @@ package sdl
 import (
 	"unsafe"
 
+	"runtime.link/lib"
 	"runtime.link/std"
 )
 
 type location struct {
-	linux  std.Location `libSDL2-2.0.so.0`
-	darwin std.Location `libSDL2.dylib,/opt/homebrew/lib/libSDL2.dylib`
+	linux  lib.Location `std:"libSDL2-2.0.so.0"`
+	darwin lib.Location `std:"libSDL2.dylib,/opt/homebrew/lib/libSDL2.dylib"`
 }
 
 type Library struct {

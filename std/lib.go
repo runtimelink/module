@@ -1,11 +1,15 @@
 package std
 
-import "unsafe"
+import (
+	"unsafe"
+
+	"runtime.link/lib"
+)
 
 type location struct {
-	linux   Location `libc.so.6 libm.so.6`
-	darwin  Location `libSystem.dylib`
-	windows Location `msvcrt.dll`
+	linux   lib.Location `std:"libc.so.6 libm.so.6"`
+	darwin  lib.Location `std:"libSystem.dylib"`
+	windows lib.Location `std:"msvcrt.dll"`
 }
 
 // Library provides provides the ANSI C standard library functions.

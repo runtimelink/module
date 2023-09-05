@@ -56,18 +56,20 @@ These assertions are used to document memory safety semantics. 'n'
 is an unsigned integer that refers to the Nth type identifier in
 the standard symbol.
 
-  - type[@n]   - the underlying memory capacity of the pointer must be
-    greater (and not equal) to '@', the '@' symbol can be
+  - type[@n] the underlying memory capacity of the pointer must be
+    greater (and not equal) to '@n', the '@' symbol can be
     omitted to refer to the literal integer value 'n'.
-  - type/@n	 - the value must equal the underlying value sizeof '@',
+  - type~@n the underlying memory capacity must not overlap with
+    the memory buffer of '@n'.
+  - type/@n	the value must equal the underlying value sizeof '@n',
     the '@' symbol can be omitted to refer to the literal
     integer value 'n'.
-  - type^@n    - the value points within the memory buffer of '@',
+  - type^@n the value points within the memory buffer of '@n',
     therefore the lifetime of this value must match the
-    lifetime of '@'.
-  - type...f@n - the value should be validated as a printf-style vararg
-    list.
-  - type:@n  	 - the value's type matches '@'.
+    lifetime of '@n'.
+  - type...f@n the value should be validated as a printf-style
+    varar list, with the format parameter being '@n'.
+  - type:@n the value's type matches the type of '@n'.
 
 # Error Handling Assertions
 
