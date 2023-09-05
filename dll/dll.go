@@ -84,7 +84,7 @@ import "C"
 //				  within that parameter.
 //	'null'	    - like void but a null char is appended to
 //				  the end of it. works only for []byte.
-//	'vfmt%v'   	- the arguments are validated to correspond
+//	'varg%v'   	- the arguments are validated to correspond
 //				  to the given fmt string.
 //
 // 'sym' name can have optional pattern {} where each

@@ -61,7 +61,7 @@ type LibraryASCII struct {
 type LibraryMath struct {
 	location
 
-	Abs func(x Int) Int `sym:"abs"`
+	Abs func(x int32) int32 `std:"int abs(int)"`
 
 	Sin   func(x float64) float64             `std:"double sin(double)"`
 	Cos   func(x float64) float64             `std:"double cos(double)"`
@@ -119,8 +119,8 @@ type LibraryFiles struct {
 	SetBufferMode func(stream *File, buf *[BufferSize]byte, mode BufferMode) error `std:"int setvbuf(&void,free@fclose{%v},int,size_t%[2]v)"`
 	SetBuffer     func(stream *File, buf *[BufferSize]byte) error                  `std:"int setbuf(&void,free@fclose{%v})"`
 
-	Printf    func(stream *File, format string, args ...any) (int, error) `std:"int<0 fprintf(&void,&char,&vfmt%[1]v...)"`
-	Scanf     func(stream *File, format string, args ...any) (int, error) `std:"int<0 fscanf(&void,&char,&vfmt%[1]v...)"`
+	Printf    func(stream *File, format string, args ...any) (int, error) `std:"int<0 fprintf(&void,&char,&varg%[1]v...)"`
+	Scanf     func(stream *File, format string, args ...any) (int, error) `std:"int<0 fscanf(&void,&char,&varg%[1]v...)"`
 	GetChar   func(stream *File) rune                                     `std:"int fgetc(&void)"`
 	GetString func(s []byte, stream *File) string                         `std:"char fgets(&char,int,&void)"`
 	PutChar   func(c rune, stream *File) rune                             `std:"int fputc(int,&void)"`
@@ -145,8 +145,8 @@ type LibraryFiles struct {
 type LibraryIO struct {
 	location
 
-	Printf    func(format string, args ...any) (int, error) `std:"int<0 printf(&char,&vfmt%v...)"`
-	Scanf     func(format string, args ...any) (int, error) `std:"int<0 scanf(&char,&vfmt%v...)"`
+	Printf    func(format string, args ...any) (int, error) `std:"int<0 printf(&char,&varg%v...)"`
+	Scanf     func(format string, args ...any) (int, error) `std:"int<0 scanf(&char,&varg%v...)"`
 	GetChar   func() rune                                   `std:"int getchar"`
 	GetString func(s unsafe.Pointer) string                 `std:"char gets"`
 	PutChar   func(c rune) error                            `std:"int<0 putchar(int)"`
@@ -159,8 +159,8 @@ type LibraryIO struct {
 type LibraryStrings struct {
 	location
 
-	Printf func(s unsafe.Pointer, fmt string, args ...any) (int, error) `std:"int<0 sprintf(&char,&char,&vfmt%v...)"`
-	Scanf  func(s, fmt string, args ...any) (int, error)                `std:"int<0 sscanf(&char,&char,&vfmt%v...)"`
+	Printf func(s unsafe.Pointer, fmt string, args ...any) (int, error) `std:"int<0 sprintf(&char,&char,&varg%v...)"`
+	Scanf  func(s, fmt string, args ...any) (int, error)                `std:"int<0 sscanf(&char,&char,&varg%v...)"`
 
 	ToFloat64    func(s string) float64                 `std:"double atof(&char)"`
 	ToInt32      func(s string) int32                   `std:"int atoi(&char)"`
@@ -214,9 +214,9 @@ type LibraryMemory struct {
 type LibraryProgram struct {
 	location
 
-	Abort  func()                   `std:"abort"`
-	Exit   func(status ExitStatus)  `std:"exit(int)"`
-	OnExit func(func())             `std:"atexit($func)" sym:"atexit,__cxa_atexit"`
+	Abort  func()                   `std:"void abort"`
+	Exit   func(status ExitStatus)  `std:"void exit(int)"`
+	OnExit func(func())             `std:"void atexit($func)" sym:"atexit,__cxa_atexit"`
 	Getenv func(name string) string `std:"char getenv(&char)"`
 }
 
@@ -224,36 +224,36 @@ type LibraryProgram struct {
 type LibrarySystem struct {
 	location
 
-	Command func(command string) Int `sym:"system" std:"int func(&char)"`
+	Command func(command string) Int `std:"int system(&char)"`
 
-	Clock func() Clock       `sym:"clock" std:"clock_t func"`
-	Time  func(t *Time) Time `sym:"time" std:"time_t func(&time_t)"`
+	Clock func() Clock       `std:"clock_t clock"`
+	Time  func(t *Time) Time `std:"time_t time(&time_t)"`
 }
 
 // LibraryDivision provides division-related functions from <stdlib.h>.
 type LibraryDivision struct {
 	location
 
-	Int32 func(num, denom int32) DivisionInt  `sym:"div" std:"div_t func(int,int)"`
-	Int64 func(num, denom int64) DivisionLong `sym:"ldiv" std:"ldiv_t func(long,long)"`
+	Int32 func(num, denom int32) DivisionInt  `std:"div_t div(int,int)"`
+	Int64 func(num, denom int64) DivisionLong `std:"ldiv_t ldiv(long,long)"`
 }
 
 // LibraryTime provides time-related functions from <time.h>.
 type LibraryTime struct {
 	location
 
-	Sub    func(t1, t2 Time) Time `sym:"difftime" std:"time_t func(time_t,time_t)"`
-	String func(t Time) string    `sym:"ctime" std:"$char func(time_t)"`
+	Sub    func(t1, t2 Time) Time `std:"time_t difftime(time_t,time_t)"`
+	String func(t Time) string    `std:"$char ctime(time_t)"`
 
-	UTC   func(t Time) *Date `sym:"timegm" std:"$void func(time_t)"`
-	Local func(t Time) *Date `sym:"localtime" std:"$void func(time_t)"`
+	UTC   func(t Time) *Date `std:"$void timegm(time_t)"`
+	Local func(t Time) *Date `std:"$void localtime(time_t)"`
 }
 
 // LibraryDates provides date-related functions from <time.h>.
 type LibraryDates struct {
 	location
 
-	Time   func(t *Date) Time                           `sym:"mktime" std:"time_t func(&void)"`
-	String func(t *Date) string                         `sym:"asctime" std:"$char func(&void)"`
-	Format func(s []byte, format string, tp *Date) Size `sym:"strftime" std:"size_t func(&char,size_t%v,&char,&void)"`
+	Time   func(t *Date) Time                           `std:"time_t mktime(&void)"`
+	String func(t *Date) string                         `std:"$char asctime(&void)"`
+	Format func(s []byte, format string, tp *Date) Size `std:"size_t strftime(&char,size_t%v,&char,&void)"`
 }

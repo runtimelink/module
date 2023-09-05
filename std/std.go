@@ -1,5 +1,3 @@
-// Package std provides standard C types for cross-language interoperability.
-// The types in this package reflect the default ABI for the current platform.
 package std
 
 import (
@@ -557,3 +555,6 @@ type Struct[T any] struct {
 	free   func()    // free function
 	layout []uintptr // Go -> C layout.
 }
+
+// Type is defined in the package documentation.
+type Type string
