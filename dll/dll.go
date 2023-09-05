@@ -49,11 +49,22 @@ import "C"
 //				  to track ownership disposal.
 //	'&type'     - the receiver borrows this pointer and
 //				  will not keep a reference to it.
+//	'-type'     - the receiver ignores this parameter.
+//	'type=0'    - set to zero
+//	'type=1'    - set to one
+//	'type<0'     - signals error when smaller than zero.
+//	'type!'     - signals error when zero.
 //	'$type'     - the receiver takes ownership of this
 //				  pointer and is responsible for freeing it.
 //	'type%v'    - the argument identified by the given
 //		          fmt parameter is mapped here. Must
 //		          come before other suffixed annotations.
+//	'type|%v'   - the argument must have greater length than
+//				  the argument identified by the given fmt
+//				  parameter.
+//	'type||%v'   - the argument must have greater capacity
+//				  to the length of the argumenent identified
+//				  by the given fmt parameter.
 //	'type?sym'  - (for return type only) when the value
 //				  is not empty, return the result from
 //				  the given symbol instead. Otherwise
@@ -63,10 +74,18 @@ import "C"
 //				  is empty, return the result from the
 //				  given symbol instead, either directly
 //				  or in an additional return value (if specified).
-//	'$type@sym' - frees the memory allocated because of
+//				  if 'sym' is omitted, invert the output.
+//	'free@sym'  - frees the memory allocated because of
 //				  this parameter, right after the next time
 //				  the given symbol is called with a matching
 //			 	  pattern.
+//	'ptrdiff%v' - the argument identified by the given
+//				  fmt parameter is assumed to be a pointer
+//				  within that parameter.
+//	'null'	    - like void but a null char is appended to
+//				  the end of it. works only for []byte.
+//	'vfmt%v'   	- the arguments are validated to correspond
+//				  to the given fmt string.
 //
 // 'sym' name can have optional pattern {} where each
 // comma separated value is either a fmt parameter or

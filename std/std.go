@@ -349,6 +349,9 @@ func (s String) String() string {
 // Buffer is a mutable array of bytes along with a length.
 // When passed to a C function, will be passed together as
 // two arguments: a pointer to the first byte and the length.
+//
+// The value can be referred to using a %v format parameter,
+// the length can be referred to using a %d format parameter.
 type Buffer struct {
 	ptr *Char
 	len Size
