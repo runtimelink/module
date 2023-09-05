@@ -556,5 +556,7 @@ type Struct[T any] struct {
 	layout []uintptr // Go -> C layout.
 }
 
-// Type is defined in the package documentation.
-type Type string
+type Field[T any] struct {
+	valid bool
+	kind  uint8
+}

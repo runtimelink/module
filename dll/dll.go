@@ -23,101 +23,19 @@ import "C"
 // will panic. Library locations provided to this function
 // will override the default ones to search for.
 //
-// Library should be a struct of functions, each function
-// must clearly define a standard signature and symbol.
-// This can be achieved by sticking to std package types, or
-// by using a std tag that defines the signature.
+// Library should be a struct of functions, each function must
+// clearly tag a standard symbol (see the [std] package). Each
+// struct argument must be a [std.Struct] with [std] tags on
+// each field.
 //
 // For example:
 //
-//	PutString func(std.String) std.Int `sym:"puts"`   // unsafe, pointer values passed directly.
-//	PutString func(string) int `std:"int puts(char)"` // safest, deep copy and convert all values.
-//
-// The 'std' is similar to a C function signature, but
-// with *, [] symbols and the argument names omitted
-// (function arguments are specified using 'void').
-// Import will not free memory by default, as this
-// is the safest option. In order to prevent these
-// memory leaks, the function signature can have
-// appropriate parameter annotations.
-//
-// Import may use these annotations to optimize calls
-// and decide how pointers are passed.
-//
-//	'#type'     - tags this symbol as the destructor for
-//				  the given type. Which will be used
-//				  to track ownership disposal.
-//	'&type'     - the receiver borrows this pointer and
-//				  will not keep a reference to it.
-//	'-type'     - the receiver ignores this parameter.
-//	'type=0'    - set to zero
-//	'type=1'    - set to one
-//	'type<0'     - signals error when smaller than zero.
-//	'type!'     - signals error when zero.
-//	'$type'     - the receiver takes ownership of this
-//				  pointer and is responsible for freeing it.
-//	'type%v'    - the argument identified by the given
-//		          fmt parameter is mapped here. Must
-//		          come before other suffixed annotations.
-//	'type|%v'   - the argument must have greater length than
-//				  the argument identified by the given fmt
-//				  parameter.
-//	'type||%v'   - the argument must have greater capacity
-//				  to the length of the argumenent identified
-//				  by the given fmt parameter.
-//	'type?sym'  - (for return type only) when the value
-//				  is not empty, return the result from
-//				  the given symbol instead. Otherwise
-//				  return the zero value. Either directly
-//				  or in an additional return value (if specified).
-//	'type!sym'  - (for argument type only) when the value
-//				  is empty, return the result from the
-//				  given symbol instead, either directly
-//				  or in an additional return value (if specified).
-//				  if 'sym' is omitted, invert the output.
-//	'free@sym'  - frees the memory allocated because of
-//				  this parameter, right after the next time
-//				  the given symbol is called with a matching
-//			 	  pattern.
-//	'ptrdiff%v' - the argument identified by the given
-//				  fmt parameter is assumed to be a pointer
-//				  within that parameter.
-//	'null'	    - like void but a null char is appended to
-//				  the end of it. works only for []byte.
-//	'varg%v'   	- the arguments are validated to correspond
-//				  to the given fmt string.
-//
-// 'sym' name can have optional pattern {} where each
-// comma separated value is either a fmt parameter or
-// underscore (wildcard). The fmt parameters indicate
-// how arguments from the function are mapped to the
-// arguments of the sumbol.
-//
-// Structs and struct pointers must either be entirely
-// composed of std typed fields, or have std tags on
-// each field that define the C type. Field order must
-// match the C struct definition. If there are layout
-// or alignment differences between the C and Go structs,
-// or non-std Go types are being used, then the struct
-// must embed a std.Struct field.
-//
-//	// safest, deep copy all pointers to this struct.
-//	type MyStruct {
-//		std.Struct // if-in-doubt, embed this.
-//
-//		Name string `std:"char"`
-//	}
-//
-//	// fastest, struct pointers passed directly
-//	type MyStruct {
-//		Name std.String
-//	}
+//	PutString func(string) error `std:"puts func(&char)int<0"`
 //
 // IMPORT IS FUNDAMENTALLY UNSAFE
 // Although it will validate what it can in order to
 // ensure safety. Callers unfamiliar with C should
-// stick to the 'std' tag and avoid libraries that
-// require C struct values to be accessed directly.
+// ensure that the std tags are aligned with C.
 //
 // Alternatively, use a library with an existing
 // representation in Go, as can be found under

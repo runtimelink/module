@@ -7,34 +7,48 @@ This package defines a standard string format for representing symbols
 along with their type. This string always starts with comma seperated
 symbol names, in order of preference. Next up is a space, followed by
 the type of the symbol. The type either begins with 'func' for function
-types, or the name of the standard C type.
+types, or the name of the standard C type. Similarly to Go, the return
+type is placed after the parameter list.
 
-	abs func(int)int
-	fread func(&void,size_t|@1,size_t[@1],&FILE)size_t<@3; ferror(@4)
+	abs func(int)int // simple C function, no pointer semantics.
 
 Assertions can be added to function parameters (and return value) to
 document pointer ownership, error handling and memory safety assertions
 to make when interacting with the function.
+
+	fread func(&void[@3],size_t/@1,size_t,&FILE)size_t<@3; ferror(@4)
+	           ^     ^         ^                      ^    ^
+			   │     │         │                      │    └── error details.
+			   │     |         |                      |
+			   │     |         |                      └── error condition.
+			   │     |         |
+			   │     |         └── must equal the underlying value
+			   │     |             sizeof the 1st argument (void).
+			   │     |
+			   │     └── memory capacity must be greater than the 3rd
+			   │         argument.
+			   |
+			   └── fread borrows this buffer for the duration of the call.
 
 # Ownership Assertions
 
 These assertions are used to document the ownership semantics for
 pointer types, their presence signals that the value is a pointer.
 
-	- $type - memory ownership is sold to the reciever of the value,
-			  the receiver becomes responsible for freeing it and
-			  can do so immediately.
-	- &type - the receiver borrows this pointer and will not keep a
-			  reference to it beyond the the lifetime of the
-			  function call. If specified on a return value, the
-			  receiver must copy the value.
-	- *type - the value is a static pointer, neither the receiver
-			  nor the sender may free it.
-	- +type - the receiver borrows this pointer so that they can
-			  initialize it. The existing value is overwritten.
-	- -type - the receiver is granted ownership but can safely
-			  ignore this parameter as it copies an existing
-			  parameter that the receiver leased to the sender.
+  - $type - memory ownership is sold to the reciever of the value,
+    the receiver becomes responsible for freeing it and
+    can do so immediately.
+  - &type - the receiver borrows this pointer and will not keep a
+    reference to it beyond the the lifetime of the
+    function call. If specified on a return value, the
+    receiver must copy the value.
+  - *type - the value is a static pointer, neither the receiver
+    nor the sender may free it.
+  - +type - the receiver borrows this pointer so that they can
+    initialize it. The existing value is overwritten.
+  - -type - the receiver is granted ownership but can safely
+    ignore this parameter as it copies an existing
+    parameter that the receiver leased to the sender.
 
 # Memory Safety Assertions
 
@@ -42,14 +56,18 @@ These assertions are used to document memory safety semantics. 'n'
 is an unsigned integer that refers to the Nth type identifier in
 the standard symbol.
 
-	- type[@n]   - the underlying memory capacity of the pointer must be
-			       greater (and not equal) to '@', the '@' symbol can be
-				   omitted to refer to the literal integer value 'n'.
-	- type|@n	 - the value must equal the sizeof '@'.
-	- type^@n    - the value points within the memory buffer of '@'.
-	- type...f@n - the value should be validated as a printf-style vararg
-	               list.
-	- data:@n  	 - the value's type matches '@'.
+  - type[@n]   - the underlying memory capacity of the pointer must be
+    greater (and not equal) to '@', the '@' symbol can be
+    omitted to refer to the literal integer value 'n'.
+  - type/@n	 - the value must equal the underlying value sizeof '@',
+    the '@' symbol can be omitted to refer to the literal
+    integer value 'n'.
+  - type^@n    - the value points within the memory buffer of '@',
+    therefore the lifetime of this value must match the
+    lifetime of '@'.
+  - type...f@n - the value should be validated as a printf-style vararg
+    list.
+  - type:@n  	 - the value's type matches '@'.
 
 # Error Handling Assertions
 
@@ -58,91 +76,62 @@ a function. They are only valid on return values. The 'sym' is a
 symbol name that can be used to lookup the error message. It can
 be omitted.
 
-	- type>0; sym - when the value is greater than zero, see the given
-				 symbol for more information about the error.
-	- type<0; sym - when the value is less than zero, see the given
-				 symbol for more information about the error.
-	- type!=0; sym - when the value is zero, see the given symbol
-				 for more information about the error.
+  - type>@n/n; sym  - when the value is greater than n/@n, see the given
+    symbol for more information about the error.
+  - type<@n/n; sym  - when the value is less than n/@n, see the given
+    symbol for more information about the error.
+  - type>=@n/n; sym - when the value is greater than or equal to n/@n,
+    see the given symbol for more information about
+    the error.
+  - type<=@n/n; sym - when the value is less than or equal to n/@n, see
+    the given symbol for more information about the error.
+  - type!@n/n; sym - when the value is not n/@n, see the given symbol
+    for more information about the error.
+  - type=@n/n; sym - when the value is n/@n, see the given symbol
+    for more information about the error.
 
-Import dynamically links to the the specified library.
-If any symbols fail to load, the corresponding functions
-will panic. Library locations provided to this function
-will override the default ones to search for.
+# Macros
 
-Library should be a struct of functions, each function
-must clearly define a standard signature and symbol.
-This can be achieved by sticking to std package types, or
-by using a std tag that defines the signature.
+When a standard symbol is tagged on a Go function field, it conveys the C
+representation of that field. Some standard macros are supported for mapping
+the Go function signature to the C one. These macros are purely used for
+convenience and do not change the semantics of the C function signature
+(the C semantics of a standard symbol tag with macros remain constant
+when the macros are removed).
 
-For example:
+  - type{n} - The constant integer value n is always used for this
+    parameter.
+  - type%v  - The Vth function argument is mapped against this
+    parameter. Standard printf formatting rules apply
+    as if each argument in the function was passed to
+    the fmt.Sprintf function. Only %v and %[n]v verbs
+    are supported.
 
-	PutString func(std.String) std.Int `sym:"puts"`   // unsafe, pointer values passed directly.
-	PutString func(string) int `std:"int puts(char)"` // safest, deep copy and convert all values.
+# Structures
 
-The 'std' is similar to a C function signature, but
-with *, [] symbols and the argument names omitted
-(function arguments are specified using 'void').
-Import will not free memory by default, as this
-is the safest option. In order to prevent these
-memory leaks, the function signature can have
-appropriate parameter annotations.
+A struct is identified by an ordered sequence of standard symbols.
 
-Import may use these annotations to optimize calls
-and decide how pointers are passed.
+Structs passed across language boundaries must have their fields
+tagged with the 'std' tag. This tag is used to specify the standard
+type for each field. Pointer fields are typically tagged with an '&'.
 
-	'type=0'    - set to zero
-	'type=1'    - set to one
-	'type%v'    - the argument identified by the given
-		          fmt parameter is mapped here. Must
-		          come before other suffixed annotations.
-	'free@sym'  - frees the memory allocated because of
-				  this parameter, right after the next time
-				  the given symbol is called with a matching
-			 	  pattern.
-	'ptrdiff_t%v' - the argument identified by the given
-				  fmt parameter is assumed to be a pointer
-				  within that parameter.
-	'null'	    - like void but a null char is appended to
-				  the end of it. works only for []byte.
-	'varg%v'   	- the arguments are validated to correspond
-				  to the given fmt string.
-
-'sym' name can have optional pattern {} where each
-comma separated value is either a fmt parameter or
-underscore (wildcard). The fmt parameters indicate
-how arguments from the function are mapped to the
-arguments of the sumbol.
-
-Structs and struct pointers must either be entirely
-composed of std typed fields, or have std tags on
-each field that define the C type. Field order must
-match the C struct definition. If there are layout
-or alignment differences between the C and Go structs,
-or non-std Go types are being used, then the struct
-must embed a std.Struct field.
-
-	// safest, deep copy all pointers to this struct.
 	type MyStruct {
-		std.Struct // if-in-doubt, embed this.
-
-		Name string `std:"char"`
+		Name string `std:"name &char"`
 	}
 
-	// fastest, struct pointers passed directly
-	type MyStruct {
-		Name std.String
+# Deep Copies
+
+By default, values are deep-copied between languages. In order to
+avoid these copies, C ownership can be preserved with [String] and
+[Pointer] types. Which need to be manually freed. Struct fields
+can be accessed directly this way by specifying getter and setter
+functions. Such types are safe to pass back and forth between
+languages (although may panic when misused).
+
+	// accessor methods to link.
+	type MyStructs {
+		Name(std.Pointer[MyStruct]) string     `std:"my_struct.Name"`
+		SetName(std.Pointer[MyStruct], string) `std:"my_struct.Name"`
 	}
-
-IMPORT IS FUNDAMENTALLY UNSAFE
-Although it will validate what it can in order to
-ensure safety. Callers unfamiliar with C should
-stick to the 'std' tag and avoid libraries that
-require C struct values to be accessed directly.
-
-Alternatively, use a library with an existing
-representation in Go, as can be found under
-runtime.link/lib
 */
-
 package std
