@@ -1,7 +1,7 @@
 /*
 Package std provides standard types for cross-language interoperability.
 
-# Standard Types
+# Standard Symbols
 
 This package defines a standard string format for representing symbols
 along with their type. This string always starts with comma seperated
@@ -9,7 +9,8 @@ symbol names, in order of preference. Next up is a space, followed by
 the type of the symbol. The type either begins with 'func' for function
 types, or the name of the standard C type.
 
-abs func(int)int
+	abs func(int)int
+	fread func(&void,size_t|@1,size_t[@1],&FILE)size_t<@3; ferror(@4)
 
 Assertions can be added to function parameters (and return value) to
 document pointer ownership, error handling and memory safety assertions
@@ -27,18 +28,28 @@ pointer types, their presence signals that the value is a pointer.
 			  reference to it beyond the the lifetime of the
 			  function call. If specified on a return value, the
 			  receiver must copy the value.
+	- *type - the value is a static pointer, neither the receiver
+			  nor the sender may free it.
+	- +type - the receiver borrows this pointer so that they can
+			  initialize it. The existing value is overwritten.
+	- -type - the receiver is granted ownership but can safely
+			  ignore this parameter as it copies an existing
+			  parameter that the receiver leased to the sender.
 
 # Memory Safety Assertions
 
 These assertions are used to document memory safety semantics. 'n'
-is an unsigned integer that refers to the Nth argument of the function.
+is an unsigned integer that refers to the Nth type identifier in
+the standard symbol.
 
-	- type[@n]  - the underlying memory capacity of the pointer must be
-			      greater (and not equal) to '@', the '@' symbol can be
-				  omitted to refer to the literal integer value 'n'.
-	- type^@n   - the value points within the memory buffer of '@'.
-	- type...@n - the value should be validated as a printf-style vararg
-	              list.
+	- type[@n]   - the underlying memory capacity of the pointer must be
+			       greater (and not equal) to '@', the '@' symbol can be
+				   omitted to refer to the literal integer value 'n'.
+	- type|@n	 - the value must equal the sizeof '@'.
+	- type^@n    - the value points within the memory buffer of '@'.
+	- type...f@n - the value should be validated as a printf-style vararg
+	               list.
+	- data:@n  	 - the value's type matches '@'.
 
 # Error Handling Assertions
 
@@ -47,16 +58,12 @@ a function. They are only valid on return values. The 'sym' is a
 symbol name that can be used to lookup the error message. It can
 be omitted.
 
-
-	- type>sym - when the value is greater than zero, see the given
+	- type>0; sym - when the value is greater than zero, see the given
 				 symbol for more information about the error.
-	- type<sym - when the value is less than zero, see the given
+	- type<0; sym - when the value is less than zero, see the given
 				 symbol for more information about the error.
-	- type0sym - when the value is zero, see the given symbol
+	- type!=0; sym - when the value is zero, see the given symbol
 				 for more information about the error.
-
-
-
 
 Import dynamically links to the the specified library.
 If any symbols fail to load, the corresponding functions
@@ -84,37 +91,11 @@ appropriate parameter annotations.
 Import may use these annotations to optimize calls
 and decide how pointers are passed.
 
-	'#type'     - tags this symbol as the destructor for
-				  the given type. Which will be used
-				  to track ownership disposal.
-	'&type'     - the receiver borrows this pointer and
-				  will not keep a reference to it.
-	'-type'     - the receiver ignores this parameter.
 	'type=0'    - set to zero
 	'type=1'    - set to one
-	'type<0'     - signals error when smaller than zero.
-	'type!'     - signals error when zero.
-	'$type'     - the receiver takes ownership of this
-				  pointer and is responsible for freeing it.
 	'type%v'    - the argument identified by the given
 		          fmt parameter is mapped here. Must
 		          come before other suffixed annotations.
-	'type|%v'   - the argument must have greater length than
-				  the argument identified by the given fmt
-				  parameter.
-	'type||%v'   - the argument must have greater capacity
-				  to the length of the argumenent identified
-				  by the given fmt parameter.
-	'type?sym'  - (for return type only) when the value
-				  is not empty, return the result from
-				  the given symbol instead. Otherwise
-				  return the zero value. Either directly
-				  or in an additional return value (if specified).
-	'type!sym'  - (for argument type only) when the value
-				  is empty, return the result from the
-				  given symbol instead, either directly
-				  or in an additional return value (if specified).
-				  if 'sym' is omitted, invert the output.
 	'free@sym'  - frees the memory allocated because of
 				  this parameter, right after the next time
 				  the given symbol is called with a matching
