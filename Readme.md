@@ -1,11 +1,16 @@
 # runtime.link
 
-This module provides a dynamic linker for Go programs so they can load C standard ABI shared libraries at runtime.
-Granted that correct struct tag semantics are provided, runtime.link provides good memory safety guarantees. Such 
-that C libraries (such as the ANSI C standard library) are completely safe to use from Go. 
+The runtime.link project aims to encourage the wider adoption of using Go to clearly 
+represent software interfaces. The author(s) believe Go to be the best 
+widely-available language for this purpose.
 
+At this time, the project includes a specification (and is working on an implementation) 
+for a dynamic linker for Go binaries which will be able to link to C shared libraries 
+safely at runtime. When correct struct tags are in-place, runtime.link will provide 
+excellent memory-safety guarantees. Such that, the ANSI C standard library will be 
+completely safe to use from Go. 
 
-Example:
+**Loading Shared Libraries at Runtime**
 ```go
 package main
 
@@ -19,17 +24,17 @@ var libc = dll.Import[struct {
 	darwin  lib.Location `std:"libSystem.dylib"`
 	windows lib.Location `std:"msvcrt.dll"`
 
-    PutString func(string) error `std:"puts func(&char)int<0"
-                                                 ^        ^
-                                                 |        |
-                                                 |        └── error condition
-                                                 |
-                                                 └── puts borrows the string but
-                                                     it doesn't keep a reference.`
+    puts func(string) error `std:"puts func(&char)int<0"
+                                            ^        ^
+                                            |        |
+                                            |        └── error condition
+                                            |
+                                            └── puts borrows the string but
+                                                it doesn't keep a reference.`
 }]()
 
 func main() {
-    if err := libc.PutString("Hello, World!"); err != nil {
+    if err := libc.puts("Hello, World!"); err != nil {
         panic(err)
     }
 }
