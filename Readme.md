@@ -24,7 +24,7 @@ import (
 )
 
 var libc = dll.Import[struct {
-    linux   lib.Location `std:"libc.so.6 libm.so.6"`
+	linux   lib.Location `std:"libc.so.6 libm.so.6"`
 	darwin  lib.Location `std:"libSystem.dylib"`
 	windows lib.Location `std:"msvcrt.dll"`
 
