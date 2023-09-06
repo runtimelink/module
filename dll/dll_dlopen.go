@@ -9,6 +9,14 @@ import (
 	"unsafe"
 )
 
+func Open(filename string) (handle unsafe.Pointer) {
+	return dlopen(filename)
+}
+
+func Sym(handle unsafe.Pointer, symbol string) unsafe.Pointer {
+	return dlsym(handle, symbol)
+}
+
 func dlopen(filename string) (handle unsafe.Pointer) {
 	s := C.CString(filename + "\x00")
 	defer C.free(unsafe.Pointer(s))
