@@ -1,11 +1,10 @@
 package std
 
 import (
-	"errors"
-	"strconv"
 	"unsafe"
 )
 
+/*
 // Boolean constants.
 const (
 	True  = c_true
@@ -316,95 +315,6 @@ func (err Error) Err() error {
 	return errors.New(strconv.Itoa(int(err)))
 }
 
-// String is a mutable null-terminated array of characters.
-type String struct {
-	ptr *Char
-}
-
-// StringOf returns a String from a Go string.
-func StringOf(s string) String {
-	if len(s) > 0 && s[len(s)-1] != 0 {
-		s += "\x00"
-	}
-	return String{
-		ptr: (*Char)(unsafe.Pointer(unsafe.StringData(s))),
-	}
-}
-
-// String returns the Go string representation of s.
-func (s String) String() string {
-	if s.ptr == nil {
-		return ""
-	}
-	var from = 0
-	var upto = 0
-	for *(*Char)(unsafe.Add(unsafe.Pointer(s.ptr), upto)) != 0 {
-		from++
-	}
-	return unsafe.String((*byte)(unsafe.Pointer(s.ptr)), upto)
-}
-
-// Buffer is a mutable array of bytes along with a length.
-// When passed to a C function, will be passed together as
-// two arguments: a pointer to the first byte and the length.
-//
-// The value can be referred to using a %v format parameter,
-// the length can be referred to using a %d format parameter.
-type Buffer struct {
-	ptr *Char
-	len Size
-}
-
-// Make returns a Buffer of the given size.
-func Make(size Size) Buffer {
-	buf := make([]byte, size)
-	return Buffer{
-		ptr: (*Char)(unsafe.Pointer(unsafe.SliceData(buf))),
-		len: size,
-	}
-}
-
-// Bytes returns the Go byte slice representation of buf.
-func (buf Buffer) Bytes() []byte {
-	return unsafe.Slice((*byte)(unsafe.Pointer(buf.ptr)), buf.len)
-}
-
-// BooleanInt is a C int that is either 0 or 1.
-type BooleanInt c_int
-
-// Bool returns true if b is 1, otherwise false.
-func (b BooleanInt) Bool() bool {
-	return b == 1
-}
-
-// Func points to a function of the specified type.
-type Func[T any] c_uintptr_t
-
-// Handle is an opaque pointer to a C object.
-// It cannot be dereferenced and can only be
-// manipulated when passed to C functions.
-//
-// A handle should not be used directly, but
-// instead should be used as the underlying
-// type for a named Go type. Use the defined
-// type as the parameter.
-//
-// For example:
-//
-//	type Texture std.Handle[Texture]
-type Handle[T any] struct {
-	_ [0]*T
-	handle
-}
-
-// Enum represents a type derived from a C enum.
-type Enum c_int
-
-// UnsafePointer to C memory, cannot contain Go
-// pointers and cannot be dereferenced.
-type UnsafePointer struct {
-	ptr c_uintptr_t
-}
 
 // Structures.
 type (
@@ -474,6 +384,83 @@ type atomic interface {
 type Atomic[T atomic] struct {
 	val T
 }
+*/
+
+// String is a mutable null-terminated array of characters.
+type String struct {
+	ptr *byte
+}
+
+// StringOf returns a String from a Go string.
+func StringOf(s string) String {
+	if len(s) > 0 && s[len(s)-1] != 0 {
+		s += "\x00"
+	}
+	return String{
+		ptr: unsafe.StringData(s),
+	}
+}
+
+// String returns the Go string representation of s.
+func (s String) String() string {
+	if s.ptr == nil {
+		return ""
+	}
+	var from = 0
+	var upto = 0
+	for *(*byte)(unsafe.Add(unsafe.Pointer(s.ptr), upto)) != 0 {
+		from++
+	}
+	return unsafe.String(s.ptr, upto)
+}
+
+// Buffer is a mutable array of bytes along with a length.
+// When passed to a C function, will be passed together as
+// two arguments: a pointer to the first byte and the length.
+//
+// The value can be referred to using a %v format parameter,
+// the length can be referred to using a %d format parameter.
+type Buffer struct {
+	ptr *byte
+	len int
+}
+
+// Make returns a Buffer of the given size.
+func Make(size int) Buffer {
+	buf := make([]byte, size)
+	return Buffer{
+		ptr: unsafe.SliceData(buf),
+		len: size,
+	}
+}
+
+// Bytes returns the Go byte slice representation of buf.
+func (buf Buffer) Bytes() []byte {
+	return unsafe.Slice(buf.ptr, buf.len)
+}
+
+// Handle is an opaque pointer to a C object.
+// It cannot be dereferenced and can only be
+// manipulated when passed to C functions.
+//
+// A handle should not be used directly, but
+// instead should be used as the underlying
+// type for a named Go type. Use the defined
+// type as the parameter.
+//
+// For example:
+//
+//	type Texture std.Handle[Texture]
+type Handle[T any] struct {
+	_ [0]*T
+	handle
+}
+
+// UnsafePointer to C memory, cannot contain Go
+// pointers and cannot be dereferenced.
+type UnsafePointer struct {
+	ptr uintptr
+}
 
 type IsPointer interface {
 	Pointer() uintptr
@@ -504,7 +491,7 @@ func (m memory) Pointer() uintptr {
 }
 
 type memory struct {
-	ptr  Uintptr
+	ptr  uintptr
 	free func()
 }
 
@@ -539,7 +526,7 @@ func (p pointer[T]) UnsafePointer() unsafe.Pointer {
 
 type Struct[T any] struct {
 	_      [0]*T
-	ptr    Uintptr   // pointer to C
+	ptr    uintptr   // pointer to C
 	free   func()    // free function
 	local  bool      // Go memory?
 	layout []uintptr // C offsets.
@@ -549,7 +536,3 @@ type Field[T any] struct {
 	valid bool
 	kind  uint8
 }
-
-// Tag includes a symbol name along with the type of the symbol.
-// Format specification is documented in the package documentation.
-type Tag string

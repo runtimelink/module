@@ -1,6 +1,7 @@
 package std
 
 import (
+	"time"
 	"unsafe"
 
 	"runtime.link/lib"
@@ -95,9 +96,11 @@ type LibraryMath struct {
 type LibraryJumps struct {
 	location
 
-	Set  func(env *JumpBuffer) error            `std:"int setjmp(&void)"`
-	Long func(env *JumpBuffer, err error) error `std:"int longjmp(&void,int)"`
+	Set  func(env JumpBuffer) error            `std:"int setjmp(&void)"`
+	Long func(env JumpBuffer, err error) error `std:"int longjmp(&void,int)"`
 }
+
+type Signal int
 
 // LibrarySignals provides the functions from <signal.h>.
 type LibrarySignals struct {
@@ -107,13 +110,25 @@ type LibrarySignals struct {
 	Raise  func(sig Signal) error                 `std:"int raise(int)"`
 }
 
+type JumpBuffer unsafe.Pointer
+type (
+	File         Handle[File]
+	FilePosition unsafe.Pointer
+)
+
+const TempNameLength = 0 // fixme
+const BufferSize = 0     // fixme
+
+type SeekMode int
+type BufferMode int
+
 // LibraryFiles provides file-related functions from <stdio.h>.
 type LibraryFiles struct {
 	location
 
 	Open     func(filename string, mode string) *File               `std:"$void fopen(&char,&char)"`
 	Reopen   func(filename string, mode string, stream *File) *File `std:"$void freopen(&char,&char,#void)"`
-	Flush    func(stream *File) Int                                 `std:"int fflush(&void)"`
+	Flush    func(stream *File) error                               `std:"int fflush(&void)"`
 	Close    func(stream *File) error                               `std:"int fclose(#void)"`
 	Remove   func(filename string) error                            `std:"int remove(&char)"`
 	Rename   func(oldname, newname string) error                    `std:"int rename(&char,&char)"`
@@ -202,8 +217,8 @@ type LibraryMemory struct {
 	Reallocate    func([]byte, int) []byte `std:"$void|%[2]v realloc(#void,size_t)"`
 	Free          func([]byte)             `std:"free(#void)"`
 
-	Sort   func(base unsafe.Pointer, n, size Size, cmp func(a, b unsafe.Pointer) int)                              `std:"qsort(&void,size_t,size_t,&func(&void,&void)int)"`
-	Search func(key, base unsafe.Pointer, n, size Size, cmp func(keyval, datum unsafe.Pointer) int) unsafe.Pointer `std:"void bsearch(&void,&void,size_t,size_t,&func(&void,&void)int)"`
+	Sort   func(base unsafe.Pointer, n, size int, cmp func(a, b unsafe.Pointer) int)                              `std:"qsort(&void,size_t,size_t,&func(&void,&void)int)"`
+	Search func(key, base unsafe.Pointer, n, size int, cmp func(keyval, datum unsafe.Pointer) int) unsafe.Pointer `std:"void bsearch(&void,&void,size_t,size_t,&func(&void,&void)int)"`
 
 	Copy    func(dst, src []byte) []byte `std:"void|%v memcpy(&void|%[2]v,&void,size_t%[2]v)"`
 	Move    func(dst, src []byte) []byte `std:"void|%v memmove(&void|%[2]v,&void,size_t%[2]v)"`
@@ -219,7 +234,7 @@ type LibraryProgram struct {
 	location
 
 	Abort  func()                   `std:"void abort"`
-	Exit   func(status ExitStatus)  `std:"void exit(int)"`
+	Exit   func(status int)         `std:"void exit(int)"`
 	OnExit func(func())             `std:"void atexit($func)" sym:"atexit,__cxa_atexit"`
 	Getenv func(name string) string `std:"char getenv(&char)"`
 }
@@ -228,36 +243,36 @@ type LibraryProgram struct {
 type LibrarySystem struct {
 	location
 
-	Command func(command string) Int `std:"int system(&char)"`
+	Command func(command string) int `std:"int system(&char)"`
 
-	Clock func() Clock       `std:"clock_t clock"`
-	Time  func(t *Time) Time `std:"time_t time(&time_t)"`
+	Clock func() time.Duration        `std:"clock_t clock"`
+	Time  func(t time.Time) time.Time `std:"time_t time(&time_t)"`
 }
 
 // LibraryDivision provides division-related functions from <stdlib.h>.
 type LibraryDivision struct {
 	location
 
-	Int32 func(num, denom int32) DivisionInt  `std:"div_t div(int,int)"`
-	Int64 func(num, denom int64) DivisionLong `std:"ldiv_t ldiv(long,long)"`
+	Int32 func(num, denom int32) (int32, int32) `std:"div_t div(int,int)"`
+	Int64 func(num, denom int64) (int64, int64) `std:"ldiv_t ldiv(long,long)"`
 }
 
 // LibraryTime provides time-related functions from <time.h>.
 type LibraryTime struct {
 	location
 
-	Sub    func(t1, t2 Time) Time `std:"time_t difftime(time_t,time_t)"`
-	String func(t Time) string    `std:"$char ctime(time_t)"`
+	Sub    func(t1, t2 time.Time) time.Time `std:"time_t difftime(time_t,time_t)"`
+	String func(t time.Time) string         `std:"$char ctime(time_t)"`
 
-	UTC   func(t Time) *Date `std:"$void timegm(time_t)"`
-	Local func(t Time) *Date `std:"$void localtime(time_t)"`
+	UTC   func(t time.Time) time.Time `std:"$void timegm(time_t)"`
+	Local func(t time.Time) time.Time `std:"$void localtime(time_t)"`
 }
 
 // LibraryDates provides date-related functions from <time.h>.
 type LibraryDates struct {
 	location
 
-	Time   func(t *Date) Time                           `std:"time_t mktime(&void)"`
-	String func(t *Date) string                         `std:"$char asctime(&void)"`
-	Format func(s []byte, format string, tp *Date) Size `std:"size_t strftime(&char,size_t%v,&char,&void)"`
+	Time   func(t time.Time) time.Time                     `std:"time_t mktime(&void)"`
+	String func(t time.Time) string                        `std:"$char asctime(&void)"`
+	Format func(s []byte, format string, tp time.Time) int `std:"size_t strftime(&char,size_t%v,&char,&void)"`
 }

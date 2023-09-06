@@ -30,6 +30,9 @@ the function.
 			   |
 			   └── fread borrows this buffer for the duration of the call.
 
+Any '@n' component inside a tag may be substituted with a standard C
+constant name or an integer literal.
+
 # Ownership Assertions
 
 These assertions are used to document the ownership semantics for
@@ -48,17 +51,14 @@ pointer types, their presence signals that the value is a pointer.
     nor the sender may free it.
   - +type - the receiver borrows this pointer so that they can
     initialize it. The existing value is overwritten.
-  - -type - the receiver is granted ownership but can safely
-    ignore this parameter as it copies an existing
-    parameter that the receiver leased to the sender.
 
-# Memory Safety Assertions
+# Safety Assertions
 
 These assertions are used to document memory safety semantics. 'n'
-is an unsigned integer that refers to the Nth type identifier in
-the standard tag.
+in '@n' refers to an unsigned integer that refers to the Nth type
+identifier in the standard tag.
 
-  - type[@n] the underlying memory capacity of the pointer must be
+  - type[>@n] the underlying memory capacity of the pointer must be
     greater (and not equal) to '@n', the '@' symbol can be
     omitted to refer to the literal integer value 'n'.
   - type~@n the underlying memory capacity must not overlap with
@@ -72,27 +72,21 @@ the standard tag.
     varar list, with the format parameter being '@n'.
   - type:@n the value's points to a value that matches the type
     of the value pointed to by '@n'.
+  - type>@n must be greater than @n
+  - type<@n; must be less than @n
+  - type>=@n; must be greater than or equal to @n
+  - type<=@n; must be less than or equal to @n
+  - type!@n; must not equal @n
+  - type=@n; must equal @n
 
-# Error Handling Assertions
+# Failure Handling
 
-These assertions are used to document error handling semantics for
-a function. They are only valid on return values. The 'sym' is a
-symbol name that can be used to lookup the error message. It can
-be omitted.
+When Safety Assertions are placed on the return value of a function
+a semicolon can be used to indicate what to do when the assertion
+fails. The following options are available:
 
-  - type>@n/n; sym  - when the value is greater than n/@n, see the given
-    symbol for more information about the error.
-  - type<@n/n; sym  - when the value is less than n/@n, see the given
-    symbol for more information about the error.
-  - type>=@n/n; sym - when the value is greater than or equal to n/@n,
-    see the given symbol for more information about
-    the error.
-  - type<=@n/n; sym - when the value is less than or equal to n/@n, see
-    the given symbol for more information about the error.
-  - type!@n/n; sym - when the value is not n/@n, see the given symbol
-    for more information about the error.
-  - type=@n/n; sym - when the value is n/@n, see the given symbol
-    for more information about the error.
+  - sym - refer to the specified symbol for information about why
+    this assertion failed.
 
 # Macros
 
@@ -102,8 +96,8 @@ the Go function signature to the standard one. These macros are purely used for
 convenience and do not change the semantics of the standard function signature
 (semantics of a tag with macros remain constant when the macros are removed).
 
-  - type{n} - The constant integer value n is always used for this
-    parameter.
+  - -type   - this parameter is ignored because it is a
+    redundant parameter or can be inferred from an assertion.
   - type%v  - The Vth function argument is mapped against this
     parameter. Standard printf formatting rules apply
     as if each argument in the function was passed to
