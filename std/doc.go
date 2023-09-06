@@ -1,9 +1,9 @@
 /*
 Package std provides standard types and tags for safe cross-language interoperability.
 
-# Standard Symbols
+# Standard Tags
 
-This package defines a standard string format for representing symbols
+This package defines a standard tag format for representing symbols
 along with their type. This string always starts with comma seperated
 symbol names, in order of preference. Next up is a space, followed by
 the type of the symbol. The type either begins with 'func' for function
@@ -12,9 +12,9 @@ type is placed after the parameter list.
 
 	abs func(int)int // simple C function, no pointer semantics.
 
-Assertions can be added to function parameters (and return value) to
-document pointer ownership, error handling and memory safety assertions
-to make when interacting with the function.
+Assertions can be added to type identifiers to document pointer ownership,
+error handling and memory safety assertions to make when interacting with
+the function.
 
 	fread func(&void[@3],size_t/@1,size_t,&FILE)size_t<@3; ferror(@4)
 	           ^     ^         ^                      ^    ^
@@ -42,6 +42,8 @@ pointer types, their presence signals that the value is a pointer.
     reference to it beyond the the lifetime of the
     function call. If specified on a return value, the
     receiver must copy the value.
+  - #type - the value pointed to by this pointer is immutable can
+    be preceded by one of the other ownership assertions
   - *type - the value is a static pointer, neither the receiver
     nor the sender may free it.
   - +type - the receiver borrows this pointer so that they can
@@ -54,22 +56,22 @@ pointer types, their presence signals that the value is a pointer.
 
 These assertions are used to document memory safety semantics. 'n'
 is an unsigned integer that refers to the Nth type identifier in
-the standard symbol.
+the standard tag.
 
   - type[@n] the underlying memory capacity of the pointer must be
     greater (and not equal) to '@n', the '@' symbol can be
     omitted to refer to the literal integer value 'n'.
   - type~@n the underlying memory capacity must not overlap with
     the memory buffer of '@n'.
-  - type/@n	the value must equal the underlying value sizeof '@n',
-    the '@' symbol can be omitted to refer to the literal
-    integer value 'n'.
+  - type/@n	the value must equal the underlying value sizeof the
+    value pointed to by '@n',
   - type^@n the value points within the memory buffer of '@n',
     therefore the lifetime of this value must match the
     lifetime of '@n'.
   - type...f@n the value should be validated as a printf-style
     varar list, with the format parameter being '@n'.
-  - type:@n the value's type matches the type of '@n'.
+  - type:@n the value's points to a value that matches the type
+    of the value pointed to by '@n'.
 
 # Error Handling Assertions
 
@@ -94,12 +96,11 @@ be omitted.
 
 # Macros
 
-When a standard symbol is tagged on a Go function field, it conveys the standard
+When a standard tag is added to a Go func field, it conveys the standard
 representation of that field. Some standard macros are supported for mapping
 the Go function signature to the standard one. These macros are purely used for
 convenience and do not change the semantics of the standard function signature
-(the standard semantics of a symbol tag with macros remain constant when the
-macros are removed).
+(semantics of a tag with macros remain constant when the macros are removed).
 
   - type{n} - The constant integer value n is always used for this
     parameter.
@@ -111,11 +112,10 @@ macros are removed).
 
 # Structures
 
-A struct is identified by an ordered sequence of standard symbols.
+A struct is identified by an slice of standard tags.
 
 Structs passed across language boundaries must have their fields
-tagged with the 'std' tag. This tag is used to specify the standard
-type for each field. Pointer fields are typically tagged with an '&'.
+tagged.
 
 	type MyStruct {
 		Name string `std:"name &char"`

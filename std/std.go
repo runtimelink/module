@@ -516,8 +516,9 @@ type Pointer[T any] struct {
 }
 
 type pointer[T any] struct {
-	ptr  unsafe.Pointer
-	free func()
+	ptr   unsafe.Pointer
+	free  func()
+	local bool // Go memory?
 }
 
 func (p pointer[T]) Get() T {
@@ -540,10 +541,15 @@ type Struct[T any] struct {
 	_      [0]*T
 	ptr    Uintptr   // pointer to C
 	free   func()    // free function
-	layout []uintptr // Go -> C layout.
+	local  bool      // Go memory?
+	layout []uintptr // C offsets.
 }
 
 type Field[T any] struct {
 	valid bool
 	kind  uint8
 }
+
+// Tag includes a symbol name along with the type of the symbol.
+// Format specification is documented in the package documentation.
+type Tag string
