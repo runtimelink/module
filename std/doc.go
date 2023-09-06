@@ -16,19 +16,19 @@ Assertions can be added to type identifiers to document pointer ownership,
 error handling and memory safety assertions to make when interacting with
 the function.
 
-	fread func(&void[@3],size_t/@1,size_t,&FILE)size_t<@3; ferror(@4)
-	           ^     ^         ^                      ^    ^
-			   │     │         │                      │    └── error details.
-			   │     |         |                      |
-			   │     |         |                      └── error condition.
-			   │     |         |
-			   │     |         └── must equal the underlying value
-			   │     |             sizeof the 1st argument (void).
-			   │     |
-			   │     └── memory capacity must be greater than the 3rd
-			   │         argument.
-			   |
-			   └── fread borrows this buffer for the duration of the call.
+		fread func(&void[@3],size_t/@1,size_t,&FILE)size_t<@3; ferror(@4)
+		           ^     ^         ^                      ^    ^
+	             │     │         │                      │    └── error details.
+	             │     |         |                      |
+	             │     |         |                      └── error condition.
+	             │     |         |
+	             │     |         └── must equal the underlying value
+	             │     |             sizeof the 1st argument (void).
+	             │     |
+	             │     └── memory capacity must be greater than the 3rd
+	             │         argument.
+	             |
+	             └── fread borrows this buffer for the duration of the call.
 
 Any '@n' component inside a tag may be substituted with a standard C
 constant name or an integer literal.
@@ -68,7 +68,7 @@ identifier in the standard tag.
   - type^@n the value points within the memory buffer of '@n',
     therefore the lifetime of this value must match the
     lifetime of '@n'.
-  - type...f@n the value should be validated as a printf-style
+  - type...?@n the value should be validated as a printf-style
     varar list, with the format parameter being '@n'.
   - type:@n the value's points to a value that matches the type
     of the value pointed to by '@n'.
@@ -76,7 +76,7 @@ identifier in the standard tag.
   - type<@n; must be less than @n
   - type>=@n; must be greater than or equal to @n
   - type<=@n; must be less than or equal to @n
-  - type!@n; must not equal @n
+  - type!=@n; must not equal @n
   - type=@n; must equal @n
 
 # Failure Handling

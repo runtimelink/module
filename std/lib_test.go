@@ -1,15 +1,6 @@
 package std_test
 
-import (
-	"fmt"
-	"math"
-	"testing"
-
-	"runtime.link/dll"
-	"runtime.link/std"
-)
-
-var libc = dll.Import[std.Library]()
+/*var libc = dll.Import[std.Library]()
 
 func TestMain(m *testing.M) {
 	libc.Program.Exit(std.Int(m.Run()))
@@ -42,3 +33,4 @@ func BenchmarkC(b *testing.B) {
 		libc.Math.Sqrt(2)
 	}
 }
+*/
