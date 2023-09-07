@@ -225,7 +225,9 @@ func (tag Tag) parseType(scan *scanner.Scanner, pos int) (Type, error) {
 			if err != nil {
 				return stype, err
 			}
+			arg.Maps = len(stype.Args) + 1
 			stype.Args = append(stype.Args, arg)
+
 			if scan.Peek() != ',' && scan.Peek() != ')' {
 				return stype, SyntaxError{
 					Tag: Tag(tag),

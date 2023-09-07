@@ -1,6 +1,7 @@
 package dll_test
 
 import (
+	"fmt"
 	"testing"
 
 	"runtime.link/dll"
@@ -12,9 +13,13 @@ var libc = dll.Import[struct {
 	darwin  lib.Location `std:"libSystem.dylib"`
 	windows lib.Location `std:"msvcrt.dll"`
 
-	PutString func(string) error `std:"puts func(&char)int<0"`
+	puts func(string) error    `std:"puts func(&char)int<0"`
+	sqrt func(float64) float64 `std:"sqrt func(double)double"`
 }]()
 
 func TestHelloWorld(*testing.T) {
-	libc.PutString("Hello, World!")
+	//libc.PutString("Hello, World!")
+
+	fmt.Println(libc.sqrt == nil)
+	fmt.Println(libc.sqrt(2))
 }
