@@ -30,17 +30,17 @@ func (e SyntaxError) Error() string {
 	b.WriteString("syntax error\n\n")
 	b.WriteString(string(e.Tag))
 	b.WriteString("\n")
-	for i := 0; i < e.Pos-2; i++ {
+	for i := 0; i < e.Pos-1; i++ {
 		b.WriteString(" ")
 	}
 	b.WriteString("^ ")
 	b.WriteString("\n")
-	for i := 0; i < e.Pos-2; i++ {
+	for i := 0; i < e.Pos-1; i++ {
 		b.WriteString(" ")
 	}
 	b.WriteString("| ")
 	b.WriteString("\n")
-	for i := 0; i < e.Pos-2; i++ {
+	for i := 0; i < e.Pos-1; i++ {
 		b.WriteString(" ")
 	}
 	b.WriteString("└──")
@@ -149,7 +149,7 @@ func (tag Tag) argument(scan *scanner.Scanner, pos int) (Argument, error) {
 		return arg, SyntaxError{
 			Tag: Tag(tag),
 			Pos: pos + scan.Pos().Column,
-			Err: errorString("expected argument"),
+			Err: errorString("unexpected token " + scan.TokenText() + " (expecting argument)"),
 		}
 	}
 	return arg, nil
@@ -171,11 +171,17 @@ func (tag Tag) parseType(scan *scanner.Scanner, pos int) (Type, error) {
 		stype.Hash = true
 	case scanner.Ident:
 		stype.Name = scan.TokenText()
+	case scanner.EOF:
+		return stype, SyntaxError{
+			Tag: Tag(tag),
+			Pos: pos + scan.Pos().Column,
+			Err: errorString("unexpected end of tag, expected type"),
+		}
 	default:
 		return stype, SyntaxError{
 			Tag: Tag(tag),
 			Pos: pos + scan.Pos().Column,
-			Err: errorString("expected ownership assertion"),
+			Err: errorString("unexpected character " + string(scan.TokenText()) + " (expecting ownership assertion or type name)"),
 		}
 	}
 	if stype.Name == "" {
@@ -292,8 +298,8 @@ func (tag Tag) parseType(scan *scanner.Scanner, pos int) (Type, error) {
 	case '[':
 		stype.Test.Capacity = true
 		scan.Scan()
-	case '/':
-		for scan.Peek() == '/' {
+	case '*':
+		for scan.Peek() == '*' {
 			scan.Scan()
 			stype.Test.Indirect++
 		}
@@ -314,7 +320,7 @@ func (tag Tag) parseType(scan *scanner.Scanner, pos int) (Type, error) {
 		scan.Scan()
 	}
 	tok = scan.Scan()
-	tokPos := pos + scan.Pos().Column
+	//tokPos := pos + scan.Pos().Column
 	arg, err := tag.argument(scan, pos)
 	if err != nil {
 		return stype, err
@@ -351,7 +357,7 @@ func (tag Tag) parseType(scan *scanner.Scanner, pos int) (Type, error) {
 	if stype.Test.Capacity && scan.Scan() != ']' {
 		return stype, SyntaxError{
 			Tag: Tag(tag),
-			Pos: tokPos,
+			Pos: pos + scan.Pos().Column,
 			Err: errorString("expected ']'"),
 		}
 	}

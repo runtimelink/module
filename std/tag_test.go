@@ -7,7 +7,7 @@ import (
 )
 
 func TestTagParsing(t *testing.T) {
-	const tag std.Tag = `fread func(&void[=@3],size_t/=@1,size_t,&FILE)size_t=@3; ferror(@4)`
+	const tag std.Tag = `fread func(&void[=@3],size_t*=@1,size_t,&FILE)size_t=@3; ferror(@4)`
 
 	symbols, ctype, err := tag.Parse()
 	if err != nil {

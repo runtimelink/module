@@ -28,13 +28,13 @@ var libc = dll.Import[struct {
 	darwin  lib.Location `std:"libSystem.dylib"`
 	windows lib.Location `std:"msvcrt.dll"`
 
-    puts func(string) error `std:"puts func(&char)int<0"
-                                            ^        ^
-                                            |        |
-                                            |        └── error condition
-                                            |
-                                            └── puts borrows the string but
-                                                it doesn't keep a reference.`
+	puts func(string) error `std:"puts func(&char)int!=0"
+	                                        ^        ^
+	                                        |        |
+	                                        |        └── error condition
+	                                        |
+	                                        └── puts borrows the string but
+	                                            it doesn't keep a reference.`
 }]()
 
 func main() {

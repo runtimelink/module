@@ -47,7 +47,7 @@ pointer types, their presence signals that the value is a pointer.
     receiver must copy the value.
   - #type - the value pointed to by this pointer is immutable can
     be preceded by one of the other ownership assertions
-  - *type - the value is a static pointer, neither the receiver
+  - ^type - the value is a static pointer, neither the receiver
     nor the sender may free it.
   - +type - the receiver borrows this pointer so that they can
     initialize it. The existing value is overwritten.
@@ -63,7 +63,7 @@ identifier in the standard tag.
     omitted to refer to the literal integer value 'n'.
   - type~@n the underlying memory capacity must not overlap with
     the memory buffer of '@n'.
-  - type/@n	the value must equal the underlying value sizeof the
+  - type*@n	the value must equal the underlying value sizeof the
     value pointed to by '@n',
   - type^@n the value points within the memory buffer of '@n',
     therefore the lifetime of this value must match the
